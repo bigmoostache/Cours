@@ -6,56 +6,111 @@ footer_right: "Questions & Réponses"
 
 sections:
   - number: "Q 1"
-    title: "Instrument bruité : comment coupler $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$ ?"
-    uses: [exp-family, nat-param, conjugate-prior, cs-gaussian]
+    title: "Instrument bruité : coupler $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$"
+    uses: [exp-family, nat-param, suff-stat, log-partition, conjugate-prior, lambda, nu, bayesian-update, tilted-param, eta-xy, cs-gaussian, cs-nig]
     content:
       - type: h3
-        text: "La question"
+        text: "Énoncé du problème"
       - type: p
-        text: "On a une variable latente $X$ modélisée par un nœud NIG. On observe un instrument $Y$ tel que $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$, où $\\varepsilon^2$ est la variance connue du bruit de mesure. Comment encoder cette relation dans le graphe d'inférence ?"
-      - type: h3
-        text: "Le setup"
-      - type: p
-        text: "On a deux ingrédients :"
-      - type: table
-        headers: ["Variable", "Modèle", "Rôle"]
-        rows:
-          - ["$X$", "$\\text{NIG}(\\lambda_0^X, \\nu_0^X)$", "Variable latente (le prior sur la vraie valeur)"]
-          - ["$Y \\mid X$", "$\\mathcal{N}(X, \\varepsilon^2)$", "Instrument bruité (on observe les $y_i$)"]
-      - type: p
-        text: "L'observation $y \\mid x \\sim \\mathcal{N}(x, \\varepsilon^2)$ est un modèle Gaussien dont la *moyenne* est inconnue (c'est $x$, le couplage) et la *variance* est connue ($\\varepsilon^2$, le bruit de l'instrument)."
-      - type: h3
-        text: "Traduction en nœuds du graphe"
-      - type: p
-        text: "On crée un *nœud Y* de type NIG, couplé au nœud $X$ :"
-      - type: table
-        headers: ["Paramètre", "Valeur", "Raison"]
-        rows:
-          - ["$\\mu_0^Y$", "$0$", "Prior vague — l'instrument seul ne sait rien"]
-          - ["$\\sigma_0^{2,Y}$", "Grand (e.g. $100$)", "Prior non-informatif"]
-          - ["$\\nu_0^Y$", "Petit (e.g. $0.1$)", "Très peu de pseudo-observations a priori"]
-          - ["Observations", "$y_1, \\dots, y_m$", "Les mesures de l'instrument"]
-      - type: h3
-        text: "La force de couplage"
-      - type: p
-        text: "Le couplage $X \\leftrightarrow Y$ doit encoder la relation $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$. La force naturelle est :"
-      - type: box
-        title: "Force de couplage instrument"
-        tex: "\\nu_0^{\\text{couplage}} = \\frac{1}{\\varepsilon^2}"
-      - type: p
-        text: "L'interprétation est directe : $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$ revient à dire qu'on a $1/\\varepsilon^2$ pseudo-observations de force qui tirent $Y$ vers $X$. Plus $\\varepsilon$ est petit (instrument précis), plus le couplage est fort. À la limite $\\varepsilon \\to 0$, le couplage est infini et $Y \\to X$."
-      - type: callout
-        title: "Pourquoi $\\lambda_0 = 0$ reste correct ?"
-        text: "Le couplage impose que $Y$ soit attiré vers l'*estimation courante* de $X$ (via $\\hat{\\eta}_X$), pas vers une valeur fixe. Le biais directionnel vient de $X$, pas du lien — d'où $\\lambda_0 = 0$ dans l'arête."
-      - type: h3
-        text: "Attention : $\\nu_0$ par arête"
-      - type: p
-        text: "Ce cas montre qu'un $\\nu_0$ *global* (identique pour tous les liens) est trop restrictif. Deux instruments avec des précisions $\\varepsilon_1^2 \\neq \\varepsilon_2^2$ nécessitent des forces de couplage différentes : $1/\\varepsilon_1^2$ et $1/\\varepsilon_2^2$. Il faut donc un $\\nu_0$ *par arête* (en gardant $\\lambda_0 = 0$ forcé)."
-      - type: h3
-        text: "Raccourci : pas de nœud $Y$ séparé"
-      - type: p
-        text: "Si on préfère ne pas créer de nœud $Y$, on peut absorber les observations de l'instrument directement dans le nœud $X$. Chaque observation $y_i$ contribue à la statistique suffisante de $X$ avec un poids $1/\\varepsilon^2$ :"
+        text: "On dispose d'une variable latente $X$ dont on modélise le paramètre $\\eta_X = (\\mu_X/\\sigma_X^2,\\, -1/(2\\sigma_X^2))$ par un prior conjugué NIG$(\\lambda_0^X, \\nu_0^X)$. Un instrument bruité fournit des mesures $y_1, \\dots, y_m$ avec :"
       - type: math
-        tex: "\\lambda_n^X = \\lambda_0^X + \\sum_i T(x_i) + \\frac{1}{\\varepsilon^2} \\sum_j y_j, \\qquad \\nu_n^X = \\nu_0^X + n_x + \\frac{m}{\\varepsilon^2}"
+        label: "Modèle d'observation"
+        tex: "Y \\mid X = x \\;\\sim\\; \\mathcal{N}(x,\\, \\varepsilon^2)"
       - type: p
-        text: "Ce raccourci est équivalent quand l'instrument n'est connecté qu'à $X$. En revanche, si $Y$ a *plusieurs* connexions (e.g. un instrument qui mesure une combinaison de variables), il faut un nœud séparé."
+        text: "où $\\varepsilon^2$ est la variance connue du bruit de mesure. Comment encoder cette relation dans le graphe d'inférence ?"
+
+      - type: h3
+        text: "Identification dans le cadre exponentiel"
+      - type: p
+        text: "La relation $Y \\mid X = x \\sim \\mathcal{N}(x, \\varepsilon^2)$ est une densité gaussienne à variance connue. En la réécrivant dans la forme canonique :"
+      - type: math
+        tex: "p(y \\mid x) = \\frac{1}{\\sqrt{2\\pi\\varepsilon^2}}\\,\\exp\\!\\Bigl(\\frac{x}{\\varepsilon^2}\\,y - \\frac{1}{2\\varepsilon^2}\\,y^2 - \\frac{x^2}{2\\varepsilon^2} - \\frac{1}{2}\\log\\varepsilon^2\\Bigr)"
+      - type: p
+        text: "On reconnaît la forme jointe du Chapitre 5, §2. Le terme $\\frac{x}{\\varepsilon^2}\\,y$ couple les statistiques suffisantes $T_X(x) = x$ et $T_Y(y) = y$ avec un paramètre d'interaction :"
+      - type: box
+        title: "Paramètre d'interaction instrument"
+        tex: "\\eta_{XY} = \\frac{1}{\\varepsilon^2}"
+      - type: p
+        text: "C'est exactement la structure du Chapitre 5 : $\\eta_Y^*(x) = \\eta_Y + \\eta_{XY} \\cdot T_X(x) = \\eta_Y + \\frac{x}{\\varepsilon^2}$. La conditionnelle $p(y \\mid x)$ reste dans la famille gaussienne, avec un paramètre naturel incliné par $x$ — le théorème fondamental (Ch. 5, §3) s'applique."
+
+      - type: h3
+        text: "Construction du nœud $Y$ dans le graphe"
+      - type: p
+        text: "Le graphe contient deux nœuds $X$ et $Y$, chacun muni de son prior conjugué :"
+      - type: table
+        headers: ["Nœud", "Prior conjugué", "Statistique suffisante", "Rôle"]
+        rows:
+          - ["$X$", "$p(\\eta_X) \\propto \\exp(\\eta_X^\\top \\lambda_0^X - \\nu_0^X A(\\eta_X))$", "$T_X(x) = (x,\\, x^2)$", "Variable latente"]
+          - ["$Y$", "$p(\\eta_Y) \\propto \\exp(\\eta_Y^\\top \\lambda_0^Y - \\nu_0^Y A(\\eta_Y))$", "$T_Y(y) = (y,\\, y^2)$", "Mesure instrument"]
+      - type: p
+        text: "Le lien $X \\leftrightarrow Y$ est une arête du champ de Markov exponentiel (Ch. 5, §6) avec $\\eta_{XY} = 1/\\varepsilon^2$ et $\\lambda_0^{(XY)} = 0$."
+      - type: p
+        text: "Le prior du nœud $Y$ doit être *vague* — l'instrument seul n'a pas de croyance a priori sur la valeur mesurée. On pose :"
+      - type: math
+        tex: "\\lambda_0^Y = \\nu_0^Y \\cdot \\begin{pmatrix} \\mu_0^Y / \\sigma_0^{2,Y} \\\\ -1/(2\\sigma_0^{2,Y}) \\end{pmatrix} \\quad \\text{avec } \\mu_0^Y = 0,\\; \\sigma_0^{2,Y} \\gg 1,\\; \\nu_0^Y \\to 0"
+
+      - type: h3
+        text: "Mise à jour de $Y$ — les deux additions"
+      - type: p
+        text: "Les $m$ observations $y_1, \\dots, y_m$ de l'instrument mettent à jour le nœud $Y$ par la règle universelle (Ch. 4, §4) :"
+      - type: box
+        title: "Posterior du nœud $Y$"
+        tex: "\\lambda_m^Y = \\lambda_0^Y + \\sum_{j=1}^m T_Y(y_j) = \\lambda_0^Y + \\begin{pmatrix} \\sum y_j \\\\ \\sum y_j^2 \\end{pmatrix}, \\qquad \\nu_m^Y = \\nu_0^Y + m"
+      - type: p
+        text: "Avec $\\nu_0^Y \\to 0$, on a $\\lambda_m^Y / \\nu_m^Y \\to (\\bar{y},\\, \\overline{y^2})$ — l'estimateur de vraisemblance, comme attendu (Ch. 4, §8)."
+
+      - type: h3
+        text: "Propagation du couplage dans l'EM"
+      - type: p
+        text: "Lors de l'itération EM (Ch. 7), le paramètre incliné de $Y$ sachant l'estimation courante $\\hat{\\eta}_X$ est :"
+      - type: math
+        label: "Inclinaison par le voisin $X$"
+        tex: "\\eta_Y^{\\,*} = \\eta_Y + \\eta_{XY} \\cdot \\hat{\\eta}_X = \\eta_Y + \\frac{1}{\\varepsilon^2}\\,\\hat{\\eta}_X"
+      - type: p
+        text: "Et symétriquement, l'estimation de $X$ est inclinée par $Y$ :"
+      - type: math
+        tex: "\\eta_X^{\\,*} = \\eta_X + \\eta_{XY} \\cdot \\hat{\\eta}_Y = \\eta_X + \\frac{1}{\\varepsilon^2}\\,\\hat{\\eta}_Y"
+      - type: p
+        text: "La force $1/\\varepsilon^2$ contrôle l'intensité de cette inclinaison mutuelle. À chaque itération, les $\\nu$ pseudo-observations de couplage sont ajoutées au compteur du nœud :"
+      - type: math
+        tex: "\\nu_n^{\\text{eff}} = \\nu_0 + n_{\\text{obs}} + \\nu_0^{\\text{couplage}} \\cdot |\\partial(\\text{nœud})|"
+      - type: p
+        text: "où $|\\partial(\\text{nœud})|$ est le nombre de voisins dans le graphe et $\\nu_0^{\\text{couplage}} = 1/\\varepsilon^2$."
+
+      - type: h3
+        text: "Interprétation en termes de $\\lambda$ et $\\nu$"
+      - type: p
+        text: "Le couplage se lit naturellement dans le formalisme du Chapitre 5, §7. La mise à jour croisée accumule :"
+      - type: table
+        headers: ["Bloc de $\\lambda$", "Accumulation", "Information portée"]
+        rows:
+          - ["$\\lambda^{(X)}$", "$\\lambda_0^X + \\sum_i T_X(x_i)$", "Observations directes de $X$"]
+          - ["$\\lambda^{(Y)}$", "$\\lambda_0^Y + \\sum_j T_Y(y_j)$", "Mesures de l'instrument"]
+          - ["$\\lambda^{(XY)}$", "$\\lambda_0^{(XY)} + \\nu_0^{\\text{couplage}} \\cdot \\hat{\\eta}_{\\text{voisin}}$", "Couplage — tilt par le voisin"]
+      - type: p
+        text: "Puisque $\\lambda_0^{(XY)} = 0$, le couplage n'introduit aucun biais directionnel — il ne fait que *rapprocher* les estimations voisines, avec une force proportionnelle à la précision de l'instrument $1/\\varepsilon^2$. C'est le même mécanisme de shrinkage (Ch. 4, §4) : le ratio $\\lambda_n / \\nu_n$ interpole entre les données propres du nœud et l'influence de ses voisins."
+
+      - type: h3
+        text: "La force de couplage est la précision de l'instrument"
+      - type: p
+        text: "Le résultat est élégant :"
+      - type: box
+        title: "Correspondance instrument–couplage"
+        tex: "Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2) \\quad \\Longleftrightarrow \\quad \\eta_{XY} = \\frac{1}{\\varepsilon^2}, \\quad \\lambda_0^{(XY)} = 0"
+      - type: p
+        text: "La précision $1/\\varepsilon^2$ de l'instrument *est* le paramètre d'interaction $\\eta_{XY}$. Plus l'instrument est précis ($\\varepsilon \\to 0$), plus $\\eta_{XY} \\to \\infty$ et le couplage force $Y \\to X$. Plus il est bruité ($\\varepsilon \\to \\infty$), plus $\\eta_{XY} \\to 0$ et les nœuds deviennent indépendants — exactement le critère de Hammersley-Clifford (Ch. 5, §6)."
+      - type: callout
+        title: "Conséquence pour le simulateur."
+        text: "Ce cas montre qu'un $\\nu_0$ de couplage *global* (identique pour tous les liens) est trop restrictif. Deux instruments avec des précisions $\\varepsilon_1^2 \\neq \\varepsilon_2^2$ nécessitent $\\eta_{XY} = 1/\\varepsilon_1^2$ et $\\eta_{XZ} = 1/\\varepsilon_2^2$ — il faut un $\\eta_{XY}$ *par arête*."
+
+      - type: h3
+        text: "Raccourci : absorption directe dans le nœud $X$"
+      - type: p
+        text: "Si l'instrument $Y$ n'est connecté qu'à $X$ (pas d'autre voisin), on peut marginaliser $Y$ et absorber les observations directement dans $X$. La statistique suffisante croisée (Ch. 5, §7) se simplifie :"
+      - type: math
+        tex: "\\lambda_n^X = \\lambda_0^X + \\sum_{i=1}^{n_x} T(x_i) + \\frac{1}{\\varepsilon^2}\\sum_{j=1}^m \\begin{pmatrix} y_j \\\\ y_j^2 \\end{pmatrix}, \\qquad \\nu_n^X = \\nu_0^X + n_x + \\frac{m}{\\varepsilon^2}"
+      - type: p
+        text: "Chaque mesure $y_j$ contribue $1/\\varepsilon^2$ pseudo-observations à la mémoire $\\lambda^X$ — exactement le poids que lui attribue la précision de l'instrument. Si $\\varepsilon^2 = \\sigma_X^2$ (instrument aussi bon qu'une observation directe), chaque $y_j$ vaut exactement une observation de $X$."
+      - type: callout
+        title: "Quand le raccourci ne marche pas."
+        text: "Si $Y$ a plusieurs voisins dans le graphe (e.g. un instrument qui mesure une combinaison de variables), la marginalisation de $Y$ fait apparaître la log-partition $A_Y(\\eta_Y^*)$ au paramètre incliné — une fonction non linéaire (Ch. 5, §4). On sort de la famille exponentielle et il faut garder $Y$ comme nœud séparé."
