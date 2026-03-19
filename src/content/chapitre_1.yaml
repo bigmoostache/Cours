@@ -43,8 +43,8 @@ sections:
         text: "L'ensemble $\\Omega = \\{\\eta : A(\\eta) < \\infty\\}$ — le *domaine naturel* — est toujours convexe et ouvert. En dehors de $\\Omega$, la distribution n'est pas normalisable."
 
   - number: "§ 3"
-    title: "Bernoulli et Catégorielle"
-    uses: [exp-family, suff-stat, nat-param, log-partition, cs-bernoulli, moments-theorem]
+    title: "Bernoulli & Beta"
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-bernoulli, cs-beta, moments-theorem, conjugate-prior]
     content:
       - type: h3
         text: "Bernoulli $\\mathrm{Ber}(p)$"
@@ -64,15 +64,63 @@ sections:
       - type: p
         text: "La bijection inverse : $p = \\sigma(\\eta) = 1/(1+e^{-\\eta})$ — la *sigmoïde*. Vérification : $\\nabla A = e^\\eta/(1+e^\\eta) = \\sigma(\\eta) = \\mathbb{E}[X] = p$. ✓"
       - type: h3
+        text: "Beta $\\mathrm{Beta}(\\alpha, \\beta)$ — le miroir conjugué"
+      - type: p
+        text: "La loi Beta vit sur $(0, 1)$ — exactement le domaine de $p$. Ce n'est pas un hasard : elle est le *prior conjugué* naturel de la Bernoulli."
+      - type: math
+        tex: "p(x \\mid \\alpha, \\beta) = \\frac{\\Gamma(\\alpha+\\beta)}{\\Gamma(\\alpha)\\Gamma(\\beta)}\\,x^{\\alpha-1}(1-x)^{\\beta-1}"
+      - type: table
+        headers: ["Composante", "Expression"]
+        rows:
+          - ["$T(x)$", "$(\\log x,\\; \\log(1-x))$"]
+          - ["$\\eta$", "$(\\alpha - 1,\\; \\beta - 1)$"]
+          - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1+1) + \\log\\Gamma(\\eta_2+1) - \\log\\Gamma(\\eta_1+\\eta_2+2)$"]
+          - ["$h(x)$", "$1/(x(1-x))$"]
+      - type: p
+        text: "La moyenne $\\mathbb{E}[X] = \\alpha/(\\alpha+\\beta)$ est un *shrinkage* entre 0 et 1, pondéré par les pseudo-observations $\\alpha$ et $\\beta$."
+      - type: callout
+        title: "Conjugaison Bernoulli–Beta."
+        text: "Si $p \\sim \\mathrm{Beta}(\\alpha, \\beta)$ et $X_i \\mid p \\sim \\mathrm{Ber}(p)$, alors $p \\mid \\mathbf{x} \\sim \\mathrm{Beta}(\\alpha + \\sum x_i,\\; \\beta + n - \\sum x_i)$. Le posterior est dans la même famille que le prior — c'est la *conjugaison*, dont le mécanisme général est le sujet du Chapitre 4."
+
+  - number: "§ 4"
+    title: "Catégorielle & Dirichlet"
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-cat, cs-dirichlet, moments-theorem, conjugate-prior]
+    content:
+      - type: h3
         text: "Catégorielle $\\mathrm{Cat}(\\pi_1, \\dots, \\pi_K)$"
       - type: p
-        text: "Généralisation à $K$ catégories. $X \\in \\{1, \\dots, K\\}$ avec $P(X=k) = \\pi_k$ :"
+        text: "Généralisation de la Bernoulli à $K$ catégories. $X \\in \\{1, \\dots, K\\}$ avec $P(X=k) = \\pi_k$ :"
       - type: math
         tex: "T(x) = (\\mathbb{1}_{x=1}, \\dots, \\mathbb{1}_{x=K-1}), \\quad \\eta_k = \\log\\frac{\\pi_k}{\\pi_K}, \\quad A(\\eta) = \\log\\Bigl(1 + \\textstyle\\sum_{k=1}^{K-1} e^{\\eta_k}\\Bigr)"
       - type: p
-        text: "On utilise $K-1$ paramètres naturels, la $K$-ème catégorie servant de référence. C'est le *softmax* : $\\pi_k = e^{\\eta_k} / (1 + \\sum_j e^{\\eta_j})$."
+        text: "On utilise $K-1$ paramètres naturels, la $K$-ème catégorie servant de référence. La bijection inverse est le *softmax* : $\\pi_k = e^{\\eta_k} / (1 + \\sum_j e^{\\eta_j})$."
+      - type: table
+        headers: ["Composante", "Expression", "Interprétation"]
+        rows:
+          - ["$T(x)$", "$(\\mathbb{1}_{x=1}, \\dots, \\mathbb{1}_{x=K-1})$", "Vecteur one-hot tronqué"]
+          - ["$\\eta$", "$(\\log(\\pi_k/\\pi_K))_{k<K}$", "Log-ratios, $\\eta \\in \\mathbb{R}^{K-1}$"]
+          - ["$A(\\eta)$", "$\\log(1 + \\sum e^{\\eta_k})$ (log-sum-exp)", "Normalisation"]
+          - ["$h(x)$", "$1$", "Mesure de comptage"]
+      - type: h3
+        text: "Dirichlet $\\mathrm{Dir}(\\alpha_1, \\dots, \\alpha_K)$ — le miroir conjugué"
+      - type: p
+        text: "La Dirichlet vit sur le simplexe $\\Delta_K = \\{\\pi : \\pi_k \\geq 0,\\, \\sum \\pi_k = 1\\}$ — exactement le domaine de $(\\pi_1, \\dots, \\pi_K)$. C'est le prior conjugué naturel de la Catégorielle."
+      - type: math
+        tex: "p(\\pi \\mid \\boldsymbol{\\alpha}) = \\frac{\\Gamma(\\sum_k \\alpha_k)}{\\prod_k \\Gamma(\\alpha_k)}\\,\\prod_{k=1}^K \\pi_k^{\\alpha_k - 1}"
+      - type: table
+        headers: ["Composante", "Expression"]
+        rows:
+          - ["$T(\\pi)$", "$(\\log \\pi_1, \\dots, \\log \\pi_K)$"]
+          - ["$\\eta$", "$(\\alpha_1 - 1, \\dots, \\alpha_K - 1)$"]
+          - ["$A(\\eta)$", "$\\sum_k \\log\\Gamma(\\eta_k+1) - \\log\\Gamma(\\sum_k (\\eta_k+1))$"]
+          - ["$h(\\pi)$", "$1/\\prod_k \\pi_k$"]
+      - type: p
+        text: "La moyenne $\\mathbb{E}[\\pi_k] = \\alpha_k / \\sum_j \\alpha_j$ généralise le shrinkage de la Beta à $K$ dimensions."
+      - type: callout
+        title: "Conjugaison Catégorielle–Dirichlet."
+        text: "Si $\\boldsymbol{\\pi} \\sim \\mathrm{Dir}(\\boldsymbol{\\alpha})$ et $X_i \\mid \\boldsymbol{\\pi} \\sim \\mathrm{Cat}(\\boldsymbol{\\pi})$, alors $\\boldsymbol{\\pi} \\mid \\mathbf{x} \\sim \\mathrm{Dir}(\\alpha_1 + n_1, \\dots, \\alpha_K + n_K)$ où $n_k = \\sum_i \\mathbb{1}_{x_i=k}$. Chaque observation ajoute une bille dans la catégorie observée — la même mécanique d'urne que pour la Beta, en dimension $K$. La construction générale est au Chapitre 4."
 
-  - number: "§ 4"
+  - number: "§ 5"
     title: "Poisson"
     uses: [exp-family, suff-stat, nat-param, log-partition, cs-poisson, moments-theorem]
     content:
@@ -93,7 +141,7 @@ sections:
         title: "Domaine naturel."
         text: "$A(\\eta) = e^\\eta < \\infty$ pour tout $\\eta \\in \\mathbb{R}$ : le domaine naturel est $\\mathbb{R}$ entier."
 
-  - number: "§ 5"
+  - number: "§ 6"
     title: "Géométrique et Exponentielle"
     uses: [exp-family, suff-stat, nat-param, log-partition]
     content:
@@ -128,7 +176,7 @@ sections:
       - type: p
         text: "Vérification : $\\nabla A = -1/\\eta = 1/\\lambda = \\mathbb{E}[X]$. ✓"
 
-  - number: "§ 6"
+  - number: "§ 7"
     title: "Gaussienne"
     uses: [exp-family, suff-stat, nat-param, log-partition, cs-gaussian, moments-theorem]
     content:
@@ -158,7 +206,7 @@ sections:
       - type: math
         tex: "\\nabla_{\\eta_1} A = -\\frac{\\eta_1}{2\\eta_2} = \\mu = \\mathbb{E}[X] \\quad ✓, \\qquad \\nabla_{\\eta_2} A = \\frac{\\eta_1^2}{4\\eta_2^2} - \\frac{1}{2\\eta_2} = \\mu^2 + \\sigma^2 = \\mathbb{E}[X^2] \\quad ✓"
 
-  - number: "§ 7"
+  - number: "§ 8"
     title: "Gamma et ses cas particuliers"
     uses: [exp-family, suff-stat, nat-param, log-partition]
     content:
@@ -187,30 +235,9 @@ sections:
           - ["Chi-deux $\\chi^2_k$", "$\\alpha = k/2,\\; \\beta = 1/2$", "Tests d'hypothèse"]
           - ["Inverse-Gamma", "$Y = 1/X$", "Prior sur $\\sigma^2$ en bayésien"]
 
-  - number: "§ 8"
-    title: "Beta"
-    uses: [exp-family, suff-stat, nat-param, log-partition]
-    content:
-      - type: p
-        text: "La loi Beta $\\mathrm{Beta}(\\alpha, \\beta)$ est le prior conjugué naturel de la Bernoulli. $X \\in (0, 1)$ :"
-      - type: math
-        tex: "p(x \\mid \\alpha, \\beta) = \\frac{\\Gamma(\\alpha+\\beta)}{\\Gamma(\\alpha)\\Gamma(\\beta)}\\,x^{\\alpha-1}(1-x)^{\\beta-1}"
-      - type: table
-        headers: ["Composante", "Expression"]
-        rows:
-          - ["$T(x)$", "$(\\log x,\\; \\log(1-x))$"]
-          - ["$\\eta$", "$(\\alpha - 1,\\; \\beta - 1)$"]
-          - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1+1) + \\log\\Gamma(\\eta_2+1) - \\log\\Gamma(\\eta_1+\\eta_2+2)$"]
-          - ["$h(x)$", "$1/(x(1-x))$"]
-      - type: p
-        text: "La moyenne est $\\mathbb{E}[X] = \\alpha/(\\alpha+\\beta)$ — un *shrinkage* entre 0 et 1, pondéré par les pseudo-observations."
-      - type: callout
-        title: "Lien avec la Bernoulli."
-        text: "Si $p \\sim \\mathrm{Beta}(\\alpha, \\beta)$ et $X_i \\mid p \\sim \\mathrm{Ber}(p)$, alors $p \\mid \\mathbf{x} \\sim \\mathrm{Beta}(\\alpha + \\sum x_i,\\; \\beta + n - \\sum x_i)$. C'est la conjugaison en action — le sujet du Chapitre 4."
-
   - number: "§ 9"
     title: "Tableau récapitulatif"
-    uses: [exp-family, suff-stat, nat-param, log-partition, base-measure, cs-bernoulli, cs-poisson, cs-gaussian]
+    uses: [exp-family, suff-stat, nat-param, log-partition, base-measure, cs-bernoulli, cs-beta, cs-poisson, cs-gaussian, cs-cat, cs-dirichlet]
     content:
       - type: p
         text: "Toutes ces distributions partagent la même structure — seuls les ingrédients changent :"
@@ -218,12 +245,14 @@ sections:
         headers: ["Famille", "$T(x)$", "$\\eta$", "$A(\\eta)$", "$h(x)$"]
         rows:
           - ["Bernoulli", "$x$", "$\\mathrm{logit}(p)$", "$\\log(1+e^\\eta)$", "$1$"]
+          - ["Beta", "$(\\log x, \\log(1-x))$", "$(\\alpha-1, \\beta-1)$", "voir §3", "$1/(x(1-x))$"]
+          - ["Catégorielle", "$(\\mathbb{1}_{x=k})_{k<K}$", "$(\\log(\\pi_k/\\pi_K))_{k<K}$", "$\\log(1+\\sum e^{\\eta_k})$", "$1$"]
+          - ["Dirichlet", "$(\\log \\pi_k)_k$", "$(\\alpha_k - 1)_k$", "voir §4", "$1/\\prod \\pi_k$"]
           - ["Poisson", "$x$", "$\\log\\lambda$", "$e^\\eta$", "$1/x!$"]
           - ["Géométrique", "$x$", "$\\log(1-p)$", "$-\\log(1-e^\\eta)$", "$1$"]
           - ["Exponentielle", "$x$", "$-\\lambda$", "$-\\log(-\\eta)$", "$1$"]
-          - ["Gaussienne", "$(x, x^2)$", "$(\\mu/\\sigma^2, -1/(2\\sigma^2))$", "voir §6", "$1/\\sqrt{2\\pi}$"]
-          - ["Gamma", "$(\\log x, x)$", "$(\\alpha-1, -\\beta)$", "voir §7", "$1/x$"]
-          - ["Beta", "$(\\log x, \\log(1-x))$", "$(\\alpha-1, \\beta-1)$", "voir §8", "$1/(x(1-x))$"]
+          - ["Gaussienne", "$(x, x^2)$", "$(\\mu/\\sigma^2, -1/(2\\sigma^2))$", "voir §7", "$1/\\sqrt{2\\pi}$"]
+          - ["Gamma", "$(\\log x, x)$", "$(\\alpha-1, -\\beta)$", "voir §8", "$1/x$"]
       - type: callout
         title: "Le fil conducteur."
         text: "Dans la suite du cours, chaque résultat — conjugaison (Ch. 4), interaction (Ch. 5), données hétérogènes (Ch. 6), EM (Ch. 7) — se démontre *une seule fois* dans le cadre général, puis s'instancie sur n'importe quelle ligne de ce tableau."

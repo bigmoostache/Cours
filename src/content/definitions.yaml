@@ -183,7 +183,7 @@ definitions:
 
   - id: cs-gaussian
     term: "Fiche — Gaussienne $\\mathcal{N}(\\mu, \\sigma^2)$"
-    defined_in: { chapter: 1, section: 6 }
+    defined_in: { chapter: 1, section: 7 }
     rows:
       - ["$T(x)$", "$(x,\\; x^2)$"]
       - ["$\\eta$", "$(\\mu/\\sigma^2,\\; -1/(2\\sigma^2))$"]
@@ -193,7 +193,7 @@ definitions:
 
   - id: cs-poisson
     term: "Fiche — Poisson $\\mathrm{Poi}(\\lambda)$"
-    defined_in: { chapter: 1, section: 4 }
+    defined_in: { chapter: 1, section: 5 }
     rows:
       - ["$T(x)$", "$x$"]
       - ["$\\eta$", "$\\log \\lambda$"]
@@ -210,6 +210,40 @@ definitions:
       - ["$A(\\eta)$", "$\\log(1+e^\\eta)$"]
       - ["$h(x)$", "$1$"]
       - ["$\\eta \\to p$", "$p = \\sigma(\\eta) = 1/(1+e^{-\\eta})$"]
+      - ["Conjugué", "$\\mathrm{Beta}(\\alpha, \\beta)$"]
+
+  - id: cs-beta
+    term: "Fiche — Beta $\\mathrm{Beta}(\\alpha, \\beta)$"
+    defined_in: { chapter: 1, section: 3 }
+    rows:
+      - ["$T(x)$", "$(\\log x,\\; \\log(1-x))$"]
+      - ["$\\eta$", "$(\\alpha-1,\\; \\beta-1)$"]
+      - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1+1) + \\log\\Gamma(\\eta_2+1) - \\log\\Gamma(\\eta_1+\\eta_2+2)$"]
+      - ["$h(x)$", "$1/(x(1-x))$"]
+      - ["Moyenne", "$\\mathbb{E}[X] = \\alpha/(\\alpha+\\beta)$"]
+      - ["Conjugué de", "Bernoulli $\\mathrm{Ber}(p)$"]
+
+  - id: cs-cat
+    term: "Fiche — Catégorielle $\\mathrm{Cat}(\\boldsymbol{\\pi})$"
+    defined_in: { chapter: 1, section: 4 }
+    rows:
+      - ["$T(x)$", "$(\\mathbb{1}_{x=1}, \\dots, \\mathbb{1}_{x=K-1})$"]
+      - ["$\\eta$", "$(\\log(\\pi_k/\\pi_K))_{k<K}$"]
+      - ["$A(\\eta)$", "$\\log(1 + \\sum_k e^{\\eta_k})$"]
+      - ["$h(x)$", "$1$"]
+      - ["$\\eta \\to \\pi$", "Softmax : $\\pi_k = e^{\\eta_k}/(1+\\sum_j e^{\\eta_j})$"]
+      - ["Conjugué", "$\\mathrm{Dir}(\\alpha_1, \\dots, \\alpha_K)$"]
+
+  - id: cs-dirichlet
+    term: "Fiche — Dirichlet $\\mathrm{Dir}(\\boldsymbol{\\alpha})$"
+    defined_in: { chapter: 1, section: 4 }
+    rows:
+      - ["$T(\\pi)$", "$(\\log \\pi_1, \\dots, \\log \\pi_K)$"]
+      - ["$\\eta$", "$(\\alpha_1-1, \\dots, \\alpha_K-1)$"]
+      - ["$A(\\eta)$", "$\\sum_k \\log\\Gamma(\\eta_k+1) - \\log\\Gamma(\\sum_k(\\eta_k+1))$"]
+      - ["$h(\\pi)$", "$1/\\prod_k \\pi_k$"]
+      - ["Moyenne", "$\\mathbb{E}[\\pi_k] = \\alpha_k/\\sum_j \\alpha_j$"]
+      - ["Conjugué de", "Catégorielle $\\mathrm{Cat}(\\boldsymbol{\\pi})$"]
 
   - id: cs-nig
     term: "Fiche — Normale-Gamma Inverse $\\mathcal{NIG}$"
