@@ -1201,6 +1201,62 @@ canvas.posterior-canvas {
 }
 .sim-add-edge button:hover { border-color: var(--accent); color: var(--accent); }
 
+.sim-coupling-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-light);
+}
+
+.sim-coupling-control label {
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.sim-coupling-control input {
+  width: 70px;
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--cream);
+}
+
+.sim-coupling-control input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.sim-explanation {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+  max-width: 700px;
+}
+
+.sim-explanation h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.sim-explanation p {
+  font-size: 16px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.sim-explanation strong {
+  color: var(--ink);
+}
+
+.sim-explanation em {
+  color: var(--accent);
+}
+
 /* ─── Responsive ─────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {

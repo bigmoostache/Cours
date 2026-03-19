@@ -19,8 +19,8 @@ function makeNode(x, y, family = "nig") {
 
 function makeEdge(src, tgt) {
   const id = eid(src, tgt);
-  // λ₀_xy = zero matrix, ν₀_xy = 0 (no prior coupling)
-  return { id, source: src, target: tgt, lambda: 0, nu: 0 };
+  // λ₀_xy = 0 (no bias), ν₀_xy controlled globally
+  return { id, source: src, target: tgt };
 }
 
 // ── Clinical interpretation for display ──────────────────────────────
@@ -202,7 +202,7 @@ function PredictivePlot({ node }) {
 
 // ── EM Algorithm ─────────────────────────────────────────────────────
 
-function runEM(nodes, edges, maxIter = 50, tol = 1e-6) {
+function runEM(nodes, edges, couplingNu, maxIter = 50, tol = 1e-6) {
   // Build adjacency
   const adj = {};
   nodes.forEach(n => { adj[n.id] = []; });
@@ -258,18 +258,19 @@ function runEM(nodes, edges, maxIter = 50, tol = 1e-6) {
       });
 
       // Add neighbor influences (mean-field EM approximation)
-      adj[node.id].forEach(({ neighbor, edge }) => {
-        if (edge.nu > 0) {
+      // Each edge has λ₀_xy = 0, ν₀_xy = couplingNu (global)
+      adj[node.id].forEach(({ neighbor }) => {
+        if (couplingNu > 0) {
           const neighborEta = eta[neighbor];
-          // Tilt: add η_xy * E[T(neighbor)] contribution
-          // Simplified: just blend toward neighbor's current estimate
-          const weight = edge.nu / (nu_n + edge.nu + 1);
+          // Tilt: blend toward neighbor's current η estimate
+          // λ₀_xy = 0 means no directional bias — just pulls toward neighbor
+          const weight = couplingNu / (nu_n + couplingNu + 1);
           for (let k = 0; k < lambda_n.length; k++) {
             if (k < neighborEta.length) {
               lambda_n[k] += weight * neighborEta[k];
             }
           }
-          nu_n += edge.nu;
+          nu_n += couplingNu;
         }
       });
 
@@ -485,7 +486,7 @@ function NodePanel({ node, onChange, onDelete, allNodes }) {
   );
 }
 
-function EdgePanel({ edge, onChange, onDelete, nodes }) {
+function EdgePanel({ edge, nodes }) {
   const src = nodes.find(n => n.id === edge.source);
   const tgt = nodes.find(n => n.id === edge.target);
   return (
@@ -494,18 +495,11 @@ function EdgePanel({ edge, onChange, onDelete, nodes }) {
         <span className="sim-panel-title">
           Couplage {src?.id} ↔ {tgt?.id}
         </span>
-        <button className="sim-panel-delete" onClick={() => onDelete(edge.id)}>✕</button>
       </div>
-      <div className="sim-field">
-        <label>ν₀_xy (force du couplage)</label>
-        <input type="number" step="0.5" min="0" value={edge.nu}
-          onChange={e => onChange({ ...edge, nu: +e.target.value })} />
-      </div>
-      <div className="sim-field">
-        <label>λ₀_xy (bias d'interaction)</label>
-        <input type="number" step="0.1" value={edge.lambda}
-          onChange={e => onChange({ ...edge, lambda: +e.target.value })} />
-      </div>
+      <p style={{ fontSize: 13, color: "var(--ink-light)", margin: "0 0 6px", lineHeight: 1.5 }}>
+        Ce lien couple les deux nœuds avec la force globale <strong>ν₀</strong> ci-dessus.
+        Le prior de couplage est <em>λ₀ = 0</em> (pas de biais directionnel).
+      </p>
     </div>
   );
 }
@@ -561,6 +555,7 @@ export default function GraphSimulator() {
   const [selected, setSelected] = useState(null);
   const [selType, setSelType] = useState(null);
   const [emResult, setEmResult] = useState(null);
+  const [couplingNu, setCouplingNu] = useState(1);
 
   const addEdge = (srcId, tgtId) => {
     const existing = edges.find(e => e.id === eid(srcId, tgtId));
@@ -603,7 +598,7 @@ export default function GraphSimulator() {
   };
 
   const runEMSim = () => {
-    const result = runEM(nodes, edges);
+    const result = runEM(nodes, edges, couplingNu);
     setEmResult(result);
   };
 
@@ -617,6 +612,11 @@ export default function GraphSimulator() {
         <button onClick={() => addNode("nig")}>+ 𝒩 Gaussienne</button>
         <button onClick={() => addNode("dir")}>+ Dir Dirichlet</button>
         <div className="sim-toolbar-sep" />
+        <div className="sim-coupling-control">
+          <label>ν₀ couplage</label>
+          <input type="number" step="0.5" min="0" value={couplingNu}
+            onChange={e => setCouplingNu(Math.max(0, +e.target.value))} />
+        </div>
         <button className="sim-btn-play" onClick={runEMSim}
           disabled={nodes.length === 0}>
           ▶ EM
@@ -680,8 +680,8 @@ export default function GraphSimulator() {
               onDelete={deleteNode} allNodes={nodes} />
           )}
           {selectedEdge && (
-            <EdgePanel edge={selectedEdge} onChange={updateEdge}
-              onDelete={deleteEdge} nodes={nodes} />
+            <EdgePanel edge={selectedEdge}
+              nodes={nodes} />
           )}
           {!selectedNode && !selectedEdge && (
             <div className="sim-panel sim-hint">
@@ -690,6 +690,36 @@ export default function GraphSimulator() {
           )}
           <EMResults result={emResult} nodes={nodes} />
         </div>
+      </div>
+
+      {/* Explanation */}
+      <div className="sim-explanation">
+        <h3>Comment fonctionne le couplage ?</h3>
+        <p>
+          Chaque lien entre deux nœuds <em>x</em> et <em>y</em> agit comme un <strong>prior de couplage</strong>.
+          On fixe systématiquement <strong>λ₀ = 0</strong> : le lien ne pousse vers aucune valeur particulière
+          (pas de biais directionnel). Seul <strong>ν₀</strong> — la force du couplage — est réglable.
+        </p>
+        <p>
+          Le paramètre <strong>ν₀</strong> s'interprète comme un nombre de <em>pseudo-observations</em> partagées :
+          plus ν₀ est grand, plus chaque nœud est « attiré » vers l'estimation de ses voisins.
+          À ν₀ = 0, les nœuds sont indépendants ; à ν₀ → ∞, tous les nœuds connectés convergent
+          vers la même estimation.
+        </p>
+        <p>
+          Formellement, lors de l'itération EM, le paramètre naturel de chaque nœud est mis à jour ainsi :
+        </p>
+        <p style={{ fontFamily: "var(--mono)", fontSize: 13, background: "var(--cream-dark)", padding: "10px 14px", borderRadius: 4, lineHeight: 1.8 }}>
+          λₙ = λ₀ + Σ T(xᵢ) + Σ<sub>voisins j</sub> ν₀ · η̂ⱼ<br />
+          νₙ = ν₀ + n + (nombre de voisins) · ν₀<br />
+          η̂ = λₙ / νₙ
+        </p>
+        <p>
+          Le terme <em>ν₀ · η̂ⱼ</em> est la contribution de chaque voisin : on ajoute ν₀ pseudo-observations
+          dont la statistique suffisante moyenne est l'estimation courante du voisin η̂ⱼ.
+          Puisque λ₀ = 0, le lien ne force aucune direction — il ne fait que <strong>rapprocher</strong> les
+          estimations voisines, proportionnellement à ν₀.
+        </p>
       </div>
     </div>
   );
