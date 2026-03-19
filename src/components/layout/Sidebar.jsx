@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { search } from "./searchIndex";
 
 const CHAPTERS = [
+  { num: 1, slug: "chapitre-1", title: "Les Familles Exponentielles et les Distributions Usuelles" },
   { num: 4, slug: "chapitre-4", title: "Le Prior Conjugué dans les Familles Exponentielles" },
   { num: 5, slug: "chapitre-5", title: "Interactions entre Familles Exponentielles" },
   { num: 6, slug: "chapitre-6", title: "Observations Éparses, Non Appariées, Mixtes" },
