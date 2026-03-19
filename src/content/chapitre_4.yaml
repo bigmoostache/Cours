@@ -1,0 +1,214 @@
+label: "Inférence Bayésienne · Chapitre 4"
+title: "Le Prior Conjugué\ndans les Familles Exponentielles"
+subtitle: "De la structure abstraite d'une famille exponentielle jusqu'à l'estimation bayésienne de la température d'un patient fébrile — un fil conducteur unique."
+footer_right: "Prior Conjugué · Familles Exponentielles"
+
+sections:
+  - number: "§ 1"
+    title: "La famille exponentielle"
+    content:
+      - type: p
+        text: "Une distribution appartient à la *famille exponentielle* si sa densité s'écrit sous la forme canonique :"
+      - type: math
+        label: "Définition — forme canonique"
+        tex: "p(x \\mid \\eta) = h(x)\\,\\exp\\!\\bigl(\\eta^\\top T(x) - A(\\eta)\\bigr)"
+      - type: p
+        text: "Les trois ingrédients : $h(x)$ la mesure de base, $T(x)$ la *statistique suffisante*, et $\\eta$ le *paramètre naturel*. La *log-partition* $A(\\eta)$ assure la normalisation :"
+      - type: math
+        tex: "A(\\eta) = \\log \\int h(x)\\,\\exp\\!\\bigl(\\eta^\\top T(x)\\bigr)\\,dx"
+      - type: p
+        text: "Ses dérivées donnent les moments de $T(x)$ :"
+      - type: math
+        tex: "\\nabla_\\eta A(\\eta) = \\mathbb{E}_\\eta[T(x)], \\qquad \\nabla^2_\\eta A(\\eta) = \\operatorname{Var}_\\eta[T(x)]"
+      - type: callout
+        title: "Intuition clé."
+        text: "Toute l'information sur $\\eta$ contenue dans une observation $x$ est capturée par $T(x)$. Deux observations avec le même $T(x)$ sont *équivalentes* pour l'inférence."
+
+  - number: "§ 2"
+    title: "Vraisemblance de n observations"
+    content:
+      - type: p
+        text: "Pour $n$ observations i.i.d., la vraisemblance se factorise élégamment :"
+      - type: math
+        tex: "p(x_1,\\dots,x_n \\mid \\eta) = \\prod_i h(x_i) \\cdot \\exp\\!\\Bigl(\\eta^\\top \\textstyle\\sum_i T(x_i) - n\\,A(\\eta)\\Bigr)"
+      - type: p
+        text: "La vraisemblance ne dépend des données qu'à travers $\\sum_i T(x_i)$. C'est le théorème de suffisance de Fisher — ce vecteur de dimension fixe résume intégralement l'information de $n$ observations, quelle que soit $n$."
+
+  - number: "§ 3"
+    title: "Construction du prior conjugué joint"
+    content:
+      - type: p
+        text: "On cherche un prior $p(\\eta)$ tel que le posterior reste dans la *même famille paramétrique*. La forme conjuguée naturelle est :"
+      - type: box
+        title: "Théorème — Prior conjugué universel"
+        tex: "p(\\eta \\mid \\lambda_0, \\nu_0) \\propto \\exp\\!\\bigl(\\eta^\\top \\lambda_0 - \\nu_0\\,A(\\eta)\\bigr), \\quad \\lambda_0 \\in \\mathbb{R}^k,\\ \\nu_0 > 0"
+      - type: p
+        text: "Ce prior est normalisable si et seulement si $\\nu_0 > 0$ et $\\lambda_0/\\nu_0$ est dans l'intérieur du domaine naturel de $\\eta$."
+      - type: h3
+        text: "Interprétation des hyperparamètres"
+      - type: table
+        headers: ["Hyperparamètre", "Interprétation", "Analogie"]
+        rows:
+          - ["$\\lambda_0$", "Statistiques suffisantes fictives a priori", "Billes initiales dans une urne"]
+          - ["$\\nu_0$", "Poids du prior (observations fictives)", "Nombre de billes initiales"]
+          - ["$\\lambda_0/\\nu_0$", "Valeur centrale a priori de $\\eta$", "Moyenne des billes initiales"]
+      - type: callout
+        title: "$\\lambda$ comme mémoire suffisante."
+        text: "$\\lambda$ est une *urne* qui accumule les statistiques suffisantes. $\\nu$ est son poids. $\\lambda/\\nu$ est sa moyenne. Le prior initialise l'urne avec $\\nu_0$ billes fictives ; chaque observation verse $T(x_i)$ dans l'urne et incrémente $\\nu$ d'une unité."
+
+  - number: "§ 4"
+    title: "La mise à jour bayésienne — deux additions"
+    content:
+      - type: p
+        text: "Le posterior s'obtient par le théorème de Bayes :"
+      - type: math
+        tex: "p(\\eta \\mid \\mathbf{x}) \\propto \\exp\\!\\Bigl(\\eta^\\top\\textstyle\\sum_i T(x_i) - n A(\\eta)\\Bigr)\\cdot\\exp\\!\\bigl(\\eta^\\top\\lambda_0 - \\nu_0 A(\\eta)\\bigr)"
+      - type: math
+        tex: "= \\exp\\!\\Bigl(\\eta^\\top\\underbrace{\\bigl(\\lambda_0 + \\textstyle\\sum_i T(x_i)\\bigr)}_{\\lambda_n} - \\underbrace{(\\nu_0+n)}_{\\nu_n}\\,A(\\eta)\\Bigr)"
+      - type: box
+        title: "Règle de mise à jour — universelle"
+        tex: "\\lambda_n = \\lambda_0 + \\sum_{i=1}^n T(x_i), \\qquad \\nu_n = \\nu_0 + n"
+      - type: p
+        text: "C'est la beauté de la conjugaison : toute la complexité bayésienne se réduit à deux additions."
+      - type: h3
+        text: "Structure de shrinkage"
+      - type: p
+        text: "Le ratio $\\lambda_n/\\nu_n$ interpole entre prior et données :"
+      - type: math
+        tex: "\\frac{\\lambda_n}{\\nu_n} = \\frac{\\nu_0}{\\nu_0+n}\\cdot\\frac{\\lambda_0}{\\nu_0} + \\frac{n}{\\nu_0+n}\\cdot\\bar{T}"
+      - type: p
+        text: "Quand $n\\to\\infty$, les données écrasent le prior ($\\lambda_n/\\nu_n \\to \\bar{T}$) et on retrouve l'estimateur fréquentiste."
+
+  - number: "§ 5"
+    title: "Application : la loi gaussienne"
+    content:
+      - type: p
+        text: "On pose $X \\sim \\mathcal{N}(\\mu, \\sigma^2)$. La forme canonique donne :"
+      - type: math
+        label: "Identification des composantes"
+        tex: "h(x) = \\tfrac{1}{\\sqrt{2\\pi}}, \\quad T(x) = \\begin{pmatrix}x \\\\ x^2\\end{pmatrix}, \\quad \\eta = \\begin{pmatrix}\\mu/\\sigma^2 \\\\ -1/(2\\sigma^2)\\end{pmatrix}"
+      - type: math
+        tex: "A(\\eta) = -\\frac{\\eta_1^2}{4\\eta_2} + \\frac{1}{2}\\log\\!\\left(-\\frac{\\pi}{\\eta_2}\\right)"
+      - type: p
+        text: "La bijection s'inverse :"
+      - type: math
+        tex: "\\sigma^2 = -\\frac{1}{2\\eta_2}, \\qquad \\mu = -\\frac{\\eta_1}{2\\eta_2}"
+      - type: p
+        text: "En revenant aux paramètres usuels, le prior conjugué se réduit à la loi *Normale-Gamma Inverse* $\\mathcal{NIG}(\\mu_0, \\nu_0, \\alpha_0, \\beta_0)$, dont les quatre hyperparamètres se lisent directement depuis $(\\lambda_0, \\nu_0)$ :"
+      - type: math
+        tex: "\\mu_0 = \\frac{\\lambda_0^{(1)}}{\\nu_0} \\cdot \\sigma_0^2, \\qquad \\alpha_0 = \\nu_0 - \\tfrac{1}{2} + 1 \\approx 1, \\qquad \\beta_0 = -\\frac{\\nu_0}{2\\,\\eta_2^{(0)}} = \\frac{\\nu_0}{2} \\cdot \\sigma_0^2 / \\nu_0 = \\sigma_0^2"
+      - type: p
+        text: "En pratique on les fixe directement par leur signification :"
+      - type: table
+        headers: ["Param.", "Valeur clinique", "Rôle"]
+        rows:
+          - ["$\\mu_0$", "$36.2^\\circ$C", "Température frontale normale a priori"]
+          - ["$\\nu_0$", "$0.001$", "Poids du prior (équiv. 1/1000 d'observation)"]
+          - ["$\\alpha_0$", "$1$", "Forme de l'InvGamma sur $\\sigma^2$ (prior vague)"]
+          - ["$\\beta_0$", "$0.0625$", "Scale : encode $\\sigma_0^2 \\approx (0.25)^2$, l'incertitude instrument"]
+      - type: callout
+        title: ""
+        text: "La loi marginale a priori de $\\mu$ est une Student $t_{2\\alpha_0}(\\mu_0,\\, \\beta_0/(\\alpha_0\\nu_0))$, soit ici $t_2(36.2,\\, 62.5)$ — une distribution très plate qui pèse l'équivalent de $\\nu_0 = 0.001$ observation fictive."
+      - type: h3
+        text: "Statistiques suffisantes gaussiennes"
+      - type: table
+        headers: ["Composante", "Statistique", "Information portée"]
+        rows:
+          - ["$T^{(1)}(x) = x$", "valeur brute", "Localisation → $\\mu$"]
+          - ["$T^{(2)}(x) = x^2$", "carré", "Dispersion → $\\sigma^2$"]
+          - ["$\\sum x_i,\\ \\sum x_i^2$", "sommes", "Tout ce qu'il faut pour inférer $(\\mu, \\sigma^2)$"]
+
+  - number: "§ 6"
+    title: "Cas pratique : thermométrie bayésienne"
+    content:
+      - type: p
+        text: "On mesure la température frontale d'un patient avec un thermomètre d'incertitude $\\pm 0.5^\\circ$C, et un prior épidémiologique très faible ($\\nu_0 = 0.001$)."
+      - type: h3
+        text: "Calibration du prior"
+      - type: p
+        text: "L'incertitude $\\pm 0.5^\\circ$C correspond à environ $2\\sigma$, donc $\\sigma \\approx 0.25^\\circ\\text{C} \\Rightarrow \\sigma^2 \\approx 0.0625$. Avec $\\mu_0 = 36.2^\\circ\\text{C}$ :"
+      - type: math
+        tex: "\\lambda_0 = \\nu_0 \\cdot \\begin{pmatrix}\\mu_0/\\sigma_0^2 \\\\ -1/(2\\sigma_0^2)\\end{pmatrix} = \\begin{pmatrix}0.579 \\\\ -0.008\\end{pmatrix}, \\qquad \\nu_0 = 0.001"
+      - type: h3
+        text: "Trois mesures, deux additions"
+      - type: table
+        headers: ["Mesure", "$x_i$ (°C)", "$x_i^2$"]
+        rows:
+          - ["1", "38.2", "1459.24"]
+          - ["2", "38.6", "1490.00"]
+          - ["3", "38.1", "1451.61"]
+          - [{text: "**Σ**", class: ""}, {text: "**114.9**", class: "accent"}, {text: "**4400.85**", class: "accent"}]
+      - type: box
+        title: "Mise à jour"
+        tex: "\\lambda_3 = \\begin{pmatrix}0.579 + 114.9 \\\\ -0.008 - 4400.85\\end{pmatrix} = \\begin{pmatrix}115.479 \\\\ -4400.858\\end{pmatrix}, \\quad \\nu_3 = 3.001"
+      - type: h3
+        text: "Retour vers $(\\mu, \\sigma^2)$"
+      - type: math
+        tex: "\\eta_1^{\\text{post}} = \\frac{115.479}{3.001} = 38.480, \\qquad \\eta_2^{\\text{post}} = \\frac{-4400.858}{3.001} = -1466.46"
+      - type: math
+        tex: "\\sigma^2_{\\text{post}} = -\\frac{1}{2\\,\\eta_2^{\\text{post}}} \\approx 3.41\\times 10^{-4} \\implies \\sigma_{\\text{post}} \\approx 0.018^\\circ\\text{C}"
+      - type: math
+        tex: "\\mu_{\\text{post}} = \\eta_1^{\\text{post}}\\cdot\\sigma^2_{\\text{post}} \\approx 38.30^\\circ\\text{C}"
+      - type: callout
+        title: "Réduction d'incertitude."
+        text: "Trois mesures ont réduit $\\sigma$ de $0.25^\\circ$C à $0.018^\\circ$C — un facteur ×14. Le patient est clairement fébrile avec une certitude quasi-totale."
+
+  - number: "§ 7"
+    title: "Simulation interactive"
+    content:
+      - type: p
+        text: "Avant de simuler, détaillons les choix du prior — chaque hyperparamètre encode une croyance physique précise, et leur calibration n'est pas arbitraire."
+      - type: h3
+        text: "Croyance 1 : la localisation a priori de μ"
+      - type: p
+        text: "On pose $\\mu_0 = 36.2^\\circ$C, température frontale normale d'un adulte. Le poids de cette croyance est $\\nu_0 = \\varepsilon \\to 0$ (ici $10^{-6}$) — un prior quasi-impropre sur $\\mu$. Dès la première observation réelle, $\\mu_n \\approx \\bar{x}$ à $10^{-6}$ près. L'information épidémio sur la localisation est intentionnellement quasi-nulle."
+      - type: h3
+        text: "Croyance 2 : l'échelle de variabilité inter-patients"
+      - type: p
+        text: "On veut que la marginale a priori sur $\\mu$ soit une Student centrée en $\\mu_0$ avec une scale de $\\sigma_{\\text{target}} = 1^\\circ$C. Ce paramètre encode la variabilité épidémiologique : dans une population saine, la température frontale varie typiquement dans un intervalle d'environ $\\pm 1^\\circ$C. La contrainte de cohérence impose :"
+      - type: math
+        tex: "\\beta_0^{(\\mu)} = \\sigma_{\\text{target}}^2 \\cdot \\alpha_0 \\cdot \\nu_0 \\xrightarrow{\\nu_0 \\to 0} 0"
+      - type: p
+        text: "Ce terme tend vers zéro avec $\\nu_0$ mais maintient la scale exactement égale à $\\sigma_{\\text{target}}$ quelle que soit la valeur de $\\nu_0$ — c'est l'invariance clé de cette paramétrisation."
+      - type: h3
+        text: "Croyance 3 : l'incertitude de mesure (prior sur σ²)"
+      - type: p
+        text: "C'est la croyance la plus importante pour le comportement à petit $n$. L'instrument a une incertitude de $\\pm 0.5^\\circ$C soit $\\sigma_{\\text{inst}} \\approx 0.25^\\circ$C. On encode cela via un prior $\\text{InvGamma}(\\alpha_0, \\beta_0^{(\\sigma)})$ avec $\\alpha_0 = 3$ pseudo-observations et :"
+      - type: math
+        tex: "\\beta_0^{(\\sigma)} = \\alpha_0 \\cdot \\sigma_{\\text{inst}}^2 = 3 \\times 0.0625 = 0.1875"
+      - type: p
+        text: "Ce prior sur $\\sigma^2$ est *indépendant* de $\\nu_0$. Il garantit qu'à $n=1$, même avec $S=0$ (variance empirique nulle), $\\beta_1 \\approx \\beta_0^{(\\sigma)} = 0.1875$ et la scale reste de l'ordre de $\\sigma_{\\text{inst}}$ — on ne s'emballe pas sur une seule mesure."
+      - type: h3
+        text: "Bilan : trois croyances, trois paramètres orthogonaux"
+      - type: table
+        headers: ["Croyance", "Paramètre", "Valeur", "Justification"]
+        rows:
+          - ["Localisation épidémio de $\\mu$", "$\\mu_0$", "36.2°C", "Norme physiologique adulte"]
+          - ["Poids du prior sur $\\mu$", "$\\nu_0$", "$10^{-6}$", "Prior quasi-impropre, données priment"]
+          - ["Variabilité inter-patients", "$\\sigma_{\\text{target}}$", "1.0°C", "Dispersion populationnelle observée"]
+          - ["Incertitude instrument", "$\\beta_0, \\alpha_0$", "$0.1875,\\ 3$", "Thermomètre ±0.5°C, ancre σ² à petit n"]
+      - type: callout
+        title: "Pourquoi ce découplage est essentiel."
+        text: "Dans une paramétrisation naïve, $\\nu_0$ contrôle simultanément le poids sur $\\mu$ *et* la scale de $\\sigma^2$ — changer l'un casse l'autre. Ici les trois croyances sont orthogonales : modifier $\\sigma_{\\text{target}}$ ne touche pas $\\sigma_{\\text{inst}}$, et $\\nu_0 \\to 0$ n'affecte ni l'un ni l'autre."
+      - type: p
+        text: "Ajoutez des mesures et observez la mise à jour en temps réel. Avec $n=0$, la Student a priori (scale = 1°C, df = 6) est visible. Dès $n=1$, les données prennent le dessus mais la scale reste ancrée sur $\\sigma_{\\text{inst}}$ jusqu'à ce que la variance empirique l'informe."
+      - type: widget
+        name: BayesUpdateWidget
+
+  - number: "§ 8"
+    title: "Synthèse — ce que la structure révèle"
+    content:
+      - type: p
+        text: "La conjugaison dans les familles exponentielles n'est pas une coïncidence algébrique : c'est une conséquence directe du théorème de suffisance. La vraisemblance ne dépend des données qu'à travers $T(x)$ ; le prior conjugué a *la même dépendance fonctionnelle* en $\\eta$ via $A(\\eta)$."
+      - type: table
+        headers: ["Objet", "Rôle", "Intuition"]
+        rows:
+          - ["$T(x)$", "Statistique suffisante", "Ce que $x$ apprend sur $\\eta$"]
+          - ["$A(\\eta)$", "Log-partition", "Géométrie de la famille"]
+          - ["$\\lambda$", "Mémoire accumulée", "Urne de statistiques suffisantes"]
+          - ["$\\nu$", "Poids de la mémoire", "Compteur d'observations"]
+          - ["$\\lambda/\\nu$", "Estimateur courant", "Moyenne de l'urne (shrinkage)"]
+          - ["$\\lambda_n = \\lambda_0 + \\sum T(x_i)$", "Mise à jour bayésienne", "Deux additions, c'est tout"]
+      - type: callout
+        title: "Le résultat le plus profond."
+        text: "Dans la limite $\\nu_0 \\to 0$ (prior non-informatif), les estimateurs bayésiens convergent vers les estimateurs du maximum de vraisemblance — le fréquentisme émerge comme cas limite du bayésien. La structure des familles exponentielles rend cette convergence transparente."

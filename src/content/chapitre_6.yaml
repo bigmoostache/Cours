@@ -1,0 +1,282 @@
+label: "Inférence Bayésienne · Chapitre 6"
+title: "Observations Éparses,\nNon Appariées, Mixtes"
+subtitle: "Quand les données manquent par structure — certaines portent sur *X* seul, d'autres sur *Y* seul, d'autres sur les deux — les trois blocs de *λ* s'alimentent de façon asynchrone. Trois compteurs *ν* distincts naissent. La conjugaison tient, mais à un prix que ce chapitre quantifie."
+footer_right: "Observations Éparses · Familles Exponentielles"
+
+sections:
+  - number: "§ 1"
+    title: "Le problème : observations hétérogènes dans un modèle joint"
+    content:
+      - type: p
+        text: "Au chapitre 5, chaque observation était une paire complète $(x_i, y_i)$. En pratique, ce confort est l'exception. Dans une cohorte clinique, certains patients n'ont qu'une mesure de température $x_i$ sans résultat sérologique ; d'autres ont un titre anticorps $y_j$ sans thermomètre de proximité ; d'autres encore ont les deux. Comment la mise à jour bayésienne se comporte-t-elle lorsque les observations ne renseignent qu'une partie de la statistique suffisante jointe ?"
+      - type: h3
+        text: "Taxonomie des observations"
+      - type: p
+        text: "On distingue trois types d'observations dans le modèle joint $p(x, y \\mid \\eta)$ de la famille exponentielle (ch. 5, §1) :"
+      - type: table
+        headers: ["Type", "Ce qui est observé", "Statistique suffisante disponible", "Notation"]
+        rows:
+          - [{text: "A — Paire complète", class: "accent"}, "$(x_k, y_k)$", "$T_x(x_k),\\; T_y(y_k),\\; T_x(x_k)\\otimes T_y(y_k)$", "$n_{xy}$ obs."]
+          - [{text: "B — Marginale X", class: "blue"}, "$x_i$ seul", "$T_x(x_i)$ uniquement", "$n_x$ obs."]
+          - [{text: "C — Marginale Y", class: "green"}, "$y_j$ seul", "$T_y(y_j)$ uniquement", "$n_y$ obs."]
+      - type: p
+        text: "La statistique suffisante croisée $T_x(x_k) \\otimes T_y(y_k)$ n'est disponible que pour les observations de type A. Elle seule informe directement $\\eta_{xy}$. Les types B et C ne la fournissent pas — mais ne l'ignorent pas non plus, comme le §6 le détaillera."
+      - type: callout
+        title: "La question centrale."
+        text: "Un dataset avec $n_x = 1000$ observations X seules, $n_y = 1000$ observations Y seules, et $n_{xy} = 3$ paires — que sait-on sur $\\eta_{xy}$ ? La réponse, surprenante, est que $\\eta_{xy}$ reste très incertain malgré les 2000 observations marginales. Les paires sont irremplaçables."
+
+  - number: "§ 2"
+    title: "La vraisemblance exacte — pourquoi la conjugaison se brise"
+    content:
+      - type: p
+        text: "Rappelons la densité jointe du chapitre 5 (§1–§2) avec les trois blocs de paramètres :"
+      - type: math
+        label: "Modèle joint — forme canonique"
+        tex: "p(x, y \\mid \\eta) = h_x(x)\\,h_y(y)\\,\\exp\\!\\Bigl( \\eta_x^\\top T_x(x) + \\eta_y^\\top T_y(y) + T_x(x)^\\top\\eta_{xy}\\,T_y(y) - A(\\eta) \\Bigr)"
+      - type: p
+        text: "avec $A(\\eta) = A(\\eta_x, \\eta_y, \\eta_{xy})$ la log-partition jointe. Avec $n_{xy}$ paires complètes, la mise à jour conjuguée du chapitre 5 s'applique directement — deux additions. La difficulté vient des observations marginales."
+      - type: h3
+        text: "La vraisemblance exacte d'une observation X seule"
+      - type: p
+        text: "Pour une observation $x_i$ de type B, la vraisemblance exacte est la marginale obtenue en intégrant $Y$ hors du modèle joint :"
+      - type: math
+        label: "Vraisemblance marginale exacte — type B"
+        tex: "p(x_i \\mid \\eta) \\propto h_x(x_i)\\,\\exp\\!\\Bigl( \\eta_x^\\top T_x(x_i) + \\underbrace{A_y\\!\\bigl(\\eta_y + \\eta_{xy}^\\top T_x(x_i)\\bigr)}_{= \\log \\int h_y(y)\\,e^{\\,\\eta_y^*(x_i)^\\top T_y(y)}\\,dy} - A(\\eta) \\Bigr)"
+      - type: p
+        text: "où $A_y(\\cdot)$ est la log-partition de la famille marginale de $Y$ et $\\eta_y^*(x_i) = \\eta_y + \\eta_{xy}^\\top T_x(x_i)$ est le paramètre incliné du chapitre 5 (§3). En incorporant cette vraisemblance dans le prior conjugué universel $\\exp(\\eta^\\top\\lambda_0 - \\nu_0 A(\\eta))$, le posterior devient :"
+      - type: math
+        tex: "p(\\eta \\mid x_i) \\propto \\exp\\!\\Bigl( \\bigl(\\lambda_0^{(x)} + T_x(x_i)\\bigr)^\\top \\!\\eta_x + \\lambda_0^{(y)\\top} \\eta_y + \\lambda_0^{(xy)\\top} \\mathrm{vec}(\\eta_{xy}) + A_y\\!\\bigl(\\eta_y + \\eta_{xy}^\\top T_x(x_i)\\bigr) - (\\nu_0 + 1)\\,A(\\eta) \\Bigr)"
+      - type: p
+        text: "La partie linéaire en $\\eta_x$ se met à jour proprement : $\\lambda^{(x)} \\mathrel{+}= T_x(x_i)$, $\\nu \\mathrel{+}= 1$. Mais le terme résiduel $A_y(\\eta_y + \\eta_{xy}^\\top T_x(x_i))$ est non linéaire en $(\\eta_y, \\eta_{xy})$ — il ne s'écrit pas comme une forme linéaire $\\mathrm{const}^\\top \\eta$. Le posterior sort de la famille conjuguée."
+      - type: box
+        title: "Obstruction à la conjugaison — énoncé précis"
+        tex: "\\text{Si } \\eta_{xy} \\neq 0 \\text{ est inconnu, les observations marginales}\\\\[4pt] \\text{(type B ou C) brisent la structure conjuguée du posterior en } (\\eta_y, \\eta_{xy})."
+      - type: callout
+        title: "Intuition géométrique."
+        text: "Le terme $A_y(\\eta_y^*(x_i))$ mesure l'énergie libre de $Y$ lorsque son paramètre naturel est décalé par $\\eta_{xy}^\\top T_x(x_i)$. Cette dépendance est non-polynomiale en $\\eta_{xy}$. La famille exponentielle est close par conditionnement (ch. 5, §3) — la conditionnelle reste dans sa famille. Elle n'est pas close par marginalisation : intégrer sur $Y$ fait apparaître la log-partition $A_y$, qui est convexe et non-linéaire."
+
+  - number: "§ 3"
+    title: "Le cas η_xy connu — découplage exact"
+    content:
+      - type: p
+        text: "La situation se simplifie radicalement si $\\eta_{xy}$ est fixé à une valeur connue $\\eta_{xy}^0$. L'inférence porte alors uniquement sur $(\\eta_x, \\eta_y)$, et le terme perturbateur devient une constante."
+      - type: p
+        text: "Pour une observation X seule $x_i$, la vraisemblance conditionnelle sur $\\eta_x$ avec $\\eta_{xy} = \\eta_{xy}^0$ fixé est :"
+      - type: math
+        label: "Vraisemblance exacte — η_xy connu"
+        tex: "\\log p(x_i \\mid \\eta_x,\\, \\eta_{xy}^0) = \\eta_x^\\top T_x(x_i) - A_x(\\eta_x) + \\mathrm{const}(\\eta_{xy}^0, x_i)"
+      - type: p
+        text: "Le terme $A_y(\\eta_y^0 + (\\eta_{xy}^0)^\\top T_x(x_i))$ est devenu une constante par rapport à $\\eta_x$. La mise à jour de $\\eta_x$ est alors exactement conjuguée :"
+      - type: math
+        label: "Mise à jour exacte — η_x avec η_xy fixé"
+        tex: "\\lambda_n^{(x)} = \\lambda_0^{(x)} + T_x(x_i), \\qquad \\nu_n^x = \\nu_0^x + 1"
+      - type: h3
+        text: "Le cas η_xy = 0 — indépendance et découplage total"
+      - type: p
+        text: "Le découplage est exact et total quand $\\eta_{xy} = 0$. La loi jointe se factorise $p(x,y) = p_x(x)\\,p_y(y)$, et les marginales ne dépendent pas des paramètres croisés. Les trois blocs évoluent indépendamment :"
+      - type: math
+        label: "Découplage exact — η_xy = 0"
+        tex: "\\lambda_n^{(x)} = \\lambda_0^{(x)} + \\sum_{\\text{B,A}} T_x(x_i), \\qquad \\lambda_n^{(y)} = \\lambda_0^{(y)} + \\sum_{\\text{C,A}} T_y(y_j)"
+      - type: p
+        text: "C'est le cas de référence. Toutes les approximations du §4 visent à s'en rapprocher en traitant chaque bloc comme si les autres paramètres étaient nuls."
+      - type: callout
+        title: "Corollaire."
+        text: "Si le modèle générateur correct est un modèle d'indépendance ($\\eta_{xy} = 0$), alors utiliser des données marginales pour mettre à jour $\\eta_x$ et $\\eta_y$ est *exactement optimal* — pas une approximation. La richesse bayésienne est intégralement préservée."
+
+  - number: "§ 4"
+    title: "L'approximation des priors produits — formalisation du découplage"
+    content:
+      - type: p
+        text: "Dans la pratique bayésienne approchée, l'hypothèse qui rétablit la conjugaison est la *factorisation du prior* en trois facteurs indépendants, un par bloc :"
+      - type: box
+        title: "Hypothèse — prior produit (mean-field sur les blocs)"
+        tex: "p(\\eta_x, \\eta_y, \\eta_{xy}\\mid \\lambda_0, \\nu_0) = p_x(\\eta_x \\mid \\lambda_0^{(x)},\\, \\nu_0^x) \\;\\cdot\\; p_y(\\eta_y \\mid \\lambda_0^{(y)},\\, \\nu_0^y) \\;\\cdot\\; p_{xy}(\\eta_{xy} \\mid \\lambda_0^{(xy)},\\, \\nu_0^{xy})"
+      - type: p
+        text: "Chaque facteur est le prior conjugué canonique (ch. 4, §3) pour son propre bloc, avec hyperparamètres $(\\lambda_0^{(\\cdot)}, \\nu_0^\\cdot)$ indépendants. Ce prior produit *n'est pas* le prior conjugué du modèle joint complet — qui serait $\\exp(\\lambda_0^\\top \\eta - \\nu_0 A(\\eta))$ avec la log-partition jointe $A$. C'est une approximation de champ moyen sur les blocs."
+      - type: h3
+        text: "Vraisemblance marginale approchée"
+      - type: p
+        text: "Sous l'hypothèse prior-produit, la vraisemblance d'une observation de type B est approchée par la famille marginale de $X$, traitée comme si $\\eta_{xy}$ était nul dans la marginalisation :"
+      - type: math
+        label: "Vraisemblance approchée — type B"
+        tex: "\\log \\tilde{p}(x_i \\mid \\eta_x) \\approx \\eta_x^\\top T_x(x_i) - A_x(\\eta_x) + \\log h_x(x_i)"
+      - type: p
+        text: "où $A_x(\\eta_x)$ est la log-partition de la famille marginale de $X$ — exactement la structure du chapitre 4. La mise à jour découle immédiatement."
+      - type: h3
+        text: "La règle de mise à jour découplée"
+      - type: p
+        text: "Sous l'hypothèse prior-produit avec vraisemblances marginales approchées, les trois blocs se mettent à jour indépendamment. Pour un dataset mixte avec $n_{xy}$ paires, $n_x$ observations X seules et $n_y$ observations Y seules :"
+      - type: box
+        title: "Règle de mise à jour — observations hétérogènes"
+        tex: "\\lambda_n^{(x)} = \\lambda_0^{(x)} + \\sum_{\\text{type B}}\\! T_x(x_i) + \\sum_{\\text{type A}}\\! T_x(x_k), \\qquad \\nu_n^x = \\nu_0^x + n_x + n_{xy} \\\\[10pt] \\lambda_n^{(y)} = \\lambda_0^{(y)} + \\sum_{\\text{type C}}\\! T_y(y_j) + \\sum_{\\text{type A}}\\! T_y(y_k), \\qquad \\nu_n^y = \\nu_0^y + n_y + n_{xy} \\\\[10pt] \\lambda_n^{(xy)} = \\lambda_0^{(xy)} + \\sum_{\\text{type A}}\\! T_x(x_k)\\otimes T_y(y_k), \\qquad \\nu_n^{xy} = \\nu_0^{xy} + n_{xy}"
+      - type: p
+        text: "La structure est transparente : chaque observation contribue aux blocs dont elle fournit les statistiques suffisantes. Les paires (type A) contribuent aux *trois* blocs ; les marginales ne contribuent qu'à un seul bloc chacune."
+      - type: callout
+        title: "Le statut de l'approximation."
+        text: "Elle est *exacte* quand $\\eta_{xy} = 0$ (§3). Elle est *asymptotiquement exacte* quand $n_{xy} \\to \\infty$ : les paires dominent l'inférence sur $\\eta_{xy}$ et les blocs deviennent asymptotiquement orthogonaux dans la métrique de Fisher. En dehors de ces régimes, elle sous-estime l'information sur $\\eta_{xy}$ portée par les données marginales. Le §6 quantifie ce coût ; le §7 le récupère via l'algorithme EM."
+
+  - number: "§ 5"
+    title: "Les trois compteurs ν — une mémoire différenciée"
+    content:
+      - type: p
+        text: "L'asymétrie la plus frappante de la règle découplée est que $\\nu_n^x$, $\\nu_n^y$ et $\\nu_n^{xy}$ croissent à des vitesses différentes selon la composition du dataset."
+      - type: h3
+        text: "Tableau de contribution par type d'observation"
+      - type: table
+        headers: ["Type", "$\\Delta\\nu^x$", "$\\Delta\\nu^y$", "$\\Delta\\nu^{xy}$", "Blocs mis à jour"]
+        rows:
+          - [{text: "A — Paire $(x_k, y_k)$", class: "accent"}, {text: "+1", class: "accent"}, {text: "+1", class: "accent"}, {text: "+1", class: "accent"}, "$\\lambda^{(x)}$, $\\lambda^{(y)}$, $\\lambda^{(xy)}$"]
+          - [{text: "B — X seul $x_i$", class: "blue"}, {text: "+1", class: "blue"}, "0", "0", "$\\lambda^{(x)}$ uniquement"]
+          - [{text: "C — Y seul $y_j$", class: "green"}, "0", {text: "+1", class: "green"}, "0", "$\\lambda^{(y)}$ uniquement"]
+      - type: h3
+        text: "Interprétation en termes d'information de Fisher"
+      - type: p
+        text: "Les compteurs $\\nu$ sont proportionnels à la précision a posteriori de chaque bloc — c'est-à-dire à l'information de Fisher cumulée. Pour une famille exponentielle à statistiques scalaires et variance unitaire, la matrice d'information de Fisher est bloc-diagonale sous le prior produit :"
+      - type: math
+        label: "Précision a posteriori — structure bloc-diagonale"
+        tex: "\\mathrm{Prec}_{\\text{post}}(\\eta_x) = \\nu_n^x, \\quad \\mathrm{Prec}_{\\text{post}}(\\eta_y) = \\nu_n^y, \\quad \\mathrm{Prec}_{\\text{post}}(\\eta_{xy}) = \\nu_n^{xy}"
+      - type: p
+        text: "La précision sur $\\eta_{xy}$ est proportionnelle à $n_{xy}$ seul. Aucune accumulation de données marginales ne la réduit."
+      - type: h3
+        text: "L'incertitude sur η_xy est incompressible par les marginales"
+      - type: math
+        label: "Incertitude sur η_xy — formule exacte sous le prior produit"
+        tex: "\\mathrm{Var}_{\\text{post}}[\\eta_{xy}] = \\frac{1}{\\nu_n^{xy}} = \\frac{1}{\\nu_0^{xy} + n_{xy}}"
+      - type: p
+        text: "Pour halvir l'incertitude sur $\\eta_{xy}$, il faut doubler $n_{xy}$ — pas augmenter $n_x$ ou $n_y$. Les paires sont une ressource irremplaçable pour inférer le couplage."
+      - type: callout
+        title: "Analogie avec l'urne du chapitre 4."
+        text: "Chaque bloc a sa propre urne : l'urne $(\\lambda^{(xy)}, \\nu^{xy})$ n'accepte que les billes des paires. Mille observations X seules remplissent l'urne $(\\lambda^{(x)}, \\nu^x)$ mais ne versent pas une seule bille dans l'urne $(\\lambda^{(xy)}, \\nu^{xy})$. Les deux urnes évoluent indépendamment. La précision sur $\\eta_{xy}$ ne croît qu'avec les billes appariées."
+
+  - number: "§ 6"
+    title: "Ce que l'approximation ignore — l'information indirecte"
+    content:
+      - type: p
+        text: "L'approximation prior-produit a un coût précis : elle néglige l'information sur $\\eta_{xy}$ que portent les observations marginales via la log-partition non linéaire $A_y$. Quantifions ce terme rejeté."
+      - type: h3
+        text: "Le terme rejeté — correction de marginalisation"
+      - type: p
+        text: "En comparant la vraisemblance exacte (§2) et la vraisemblance approchée (§4) d'une observation X seule, le terme négligé est :"
+      - type: math
+        label: "Information indirecte — terme négligé par l'approximation"
+        tex: "\\delta(x_i, \\eta) \\;\\equiv\\; A_y\\!\\bigl(\\eta_y + \\eta_{xy}^\\top T_x(x_i)\\bigr) - A_y(\\eta_y)"
+      - type: p
+        text: "Ce terme mesure le décalage de la log-partition de $Y$ induit par la valeur de $T_x(x_i)$ via le couplage. Il est nul quand $\\eta_{xy} = 0$ et croît avec $\\|\\eta_{xy}\\|$. Son gradient par rapport à $\\eta_{xy}$ est :"
+      - type: math
+        tex: "\\nabla_{\\eta_{xy}}\\,\\delta(x_i, \\eta) = T_x(x_i) \\otimes \\mathbb{E}_{p(y\\mid x_i,\\,\\eta)}[T_y(Y)]"
+      - type: p
+        text: "Ce gradient a la forme d'une statistique croisée imputée — $T_x(x_i) \\otimes \\mathbb{E}[T_y(Y) \\mid x_i]$ — où la valeur inobservée $T_y(y_i)$ est remplacée par son espérance conditionnelle. C'est exactement la clé de l'algorithme EM du §7."
+      - type: h3
+        text: "Quand l'approximation est-elle fidèle ?"
+      - type: table
+        headers: ["Régime", "Erreur de l'approximation", "Justification"]
+        rows:
+          - ["$\\eta_{xy} = 0$", {text: "Nulle — exacte", class: "accent"}, "La marginalisation ne crée aucun couplage"]
+          - ["$\\|\\eta_{xy}\\| \\ll 1$", {text: "Faible — $O(\\|\\eta_{xy}\\|^2)$", class: "blue"}, "$\\delta$ est d'ordre 2 en $\\eta_{xy}$"]
+          - ["$n_{xy} \\gg n_x, n_y$", {text: "Asymptotiquement nulle", class: "green"}, "L'information directe sur $\\eta_{xy}$ domine"]
+          - ["$n_{xy} \\approx 0$, $\\|\\eta_{xy}\\|$ grand", {text: "Forte — pertes réelles", class: "faint"}, "L'information indirecte est la seule source"]
+      - type: callout
+        title: "La vraie contrainte informationnelle."
+        text: "La famille exponentielle jointe a une asymétrie fondamentale entre conditionnement et marginalisation. Conditionner sur un paramètre est gratuit : la conditionnelle reste dans la famille (ch. 5, §3), la mise à jour est exactement conjuguée. Marginaliser coûte : intégrer sur une variable fait apparaître $A_y$, non linéaire. L'information indirecte sur $\\eta_{xy}$ portée par les marginales existe, mais passe par ce canal non linéaire — et c'est précisément ce que l'algorithme EM récupère."
+
+  - number: "§ 7"
+    title: "L'algorithme EM — imputation des statistiques manquantes"
+    content:
+      - type: p
+        text: "L'obstruction à la conjugaison vient du terme manquant $T_y(y_i)$ dans la statistique croisée $T_x(x_i) \\otimes T_y(y_i)$ pour une observation de type B. L'algorithme EM rétablit la conjugaison en *imputant* cette valeur manquante par son espérance conditionnelle sous le modèle courant."
+      - type: h3
+        text: "L'étape E — imputation bayésienne des statistiques suffisantes"
+      - type: p
+        text: "À l'itération $t$, avec paramètres courants $\\eta^{(t)}$, on calcule l'espérance de $T_y(Y_i)$ conditionnellement à $X_i = x_i$. Par la propriété fondamentale des familles exponentielles (ch. 4, §1), cette espérance est le gradient de la log-partition :"
+      - type: math
+        label: "Étape E — statistique suffisante imputée"
+        tex: "\\widetilde{T}_y^{(t)}(x_i) \\equiv \\mathbb{E}_{p(y\\mid x_i,\\,\\eta^{(t)})}\\!\\bigl[T_y(Y)\\bigr] = \\nabla_{\\eta_y}\\, A_y\\!\\bigl(\\eta_y^{(t)} + (\\eta_{xy}^{(t)})^\\top T_x(x_i)\\bigr)"
+      - type: p
+        text: "La statistique croisée imputée pour l'observation $x_i$ (type B) est alors :"
+      - type: math
+        tex: "\\widetilde{T}_{xy}^{(t)}(x_i) \\equiv T_x(x_i) \\otimes \\widetilde{T}_y^{(t)}(x_i)"
+      - type: p
+        text: "Symétriquement, pour une observation $y_j$ de type C, on impute $T_x(x_j)$ par son espérance conditionnelle $\\widetilde{T}_x^{(t)}(y_j) = \\nabla_{\\eta_x} A_x(\\eta_x^{(t)} + \\eta_{xy}^{(t)} T_y(y_j))$."
+      - type: h3
+        text: "L'étape M — mise à jour conjuguée sur les données complétées"
+      - type: p
+        text: "En traitant les statistiques imputées comme des observations fictives, le dataset est « complété » et la règle conjuguée du chapitre 5 s'applique intégralement :"
+      - type: box
+        title: "Étape M — règle de mise à jour avec données complétées"
+        tex: "\\lambda_{t+1}^{(xy)} = \\lambda_0^{(xy)} + \\sum_{\\text{type A}} T_x(x_k) \\otimes T_y(y_k) + \\sum_{\\text{type B}} \\widetilde{T}_{xy}^{(t)}(x_i) + \\sum_{\\text{type C}} T_x(x_j) \\otimes \\widetilde{T}_y^{(t)}(y_j) \\\\[8pt] \\nu_{t+1}^{xy} = \\nu_0^{xy} + n_{xy} + n_x + n_y"
+      - type: p
+        text: "À convergence, $\\eta_{xy}^{(t)}$ stationne au mode a posteriori. Le compteur $\\nu^{xy}$ atteint sa valeur maximale : toutes les observations, y compris les marginales via leurs imputations, contribuent désormais à l'estimation de $\\eta_{xy}$."
+      - type: h3
+        text: "Cas gaussien — la forme explicite de l'étape E"
+      - type: p
+        text: "Dans le cas gaussien avec $T_x(x) = x$, $T_y(y) = y$ et variances unitaires, $A_y(\\eta_y) = \\eta_y^2 / 2$, donc $\\nabla_{\\eta_y} A_y(\\eta_y) = \\eta_y$. L'étape E prend la forme explicite :"
+      - type: math
+        label: "Étape E gaussienne — formule close"
+        tex: "\\widetilde{T}_y^{(t)}(x_i) = \\mathbb{E}[Y \\mid X = x_i,\\,\\eta^{(t)}] = \\eta_y^{(t)} + \\eta_{xy}^{(t)} \\cdot x_i"
+      - type: p
+        text: "La contribution de $x_i$ à $\\lambda^{(xy)}$ est alors :"
+      - type: math
+        tex: "\\widetilde{T}_{xy}^{(t)}(x_i) = x_i \\cdot \\bigl(\\eta_y^{(t)} + \\eta_{xy}^{(t)} \\cdot x_i\\bigr) = \\eta_y^{(t)} \\cdot x_i + \\eta_{xy}^{(t)} \\cdot x_i^2"
+      - type: p
+        text: "Le terme $\\eta_{xy}^{(t)} \\cdot x_i^2$ est auto-renforçant : plus $\\eta_{xy}$ est grand, plus chaque observation marginale X amplifie sa propre contribution à $\\lambda^{(xy)}$. C'est la signature de la structure non-identifiable : sans paire, les marginales seules ne peuvent lever l'ambiguïté sur le signe de $\\eta_{xy}$ — les itérations EM peuvent converger vers $+\\hat{\\eta}_{xy}$ ou $-\\hat{\\eta}_{xy}$ selon l'initialisation."
+      - type: h3
+        text: "Convergence et garanties"
+      - type: p
+        text: "Chaque itération EM augmente la log-vraisemblance marginale $\\log p(x_{\\text{obs}} \\mid \\eta)$ — c'est la propriété fondamentale de l'algorithme (Dempster, Laird, Rubin, 1977). La convergence vers un maximum local est garantie sous des conditions de régularité standard. Le nombre d'itérations nécessaires dépend du ratio $n_{xy}/(n_x + n_y + n_{xy})$ : plus ce ratio est faible, plus les données manquantes dominent et plus la convergence est lente."
+      - type: h3
+        text: "Comment calculer le terme d'imputation — $\\nabla_{\\eta_y} A_y(\\eta_y^*(x_i))$"
+      - type: p
+        text: "Ce terme est la clé de l'étape E. Il apparaît parce que la vraisemblance exacte d'une observation $x_i$ de type B contient $A_y(\\eta_y^*(x_i))$ — la log-partition de $Y$ évaluée au paramètre incliné. Son gradient par rapport à $\\eta_y$, et donc par rapport à $\\eta_{xy}$ via $\\eta_y^* = \\eta_y + \\eta_{xy}^\\top T_x(x_i)$, est donné directement par la propriété fondamentale des familles exponentielles établie au chapitre 4 (§1) :"
+      - type: box
+        title: "Propriété clé — le gradient de A est l'espérance de T"
+        tex: "\\nabla_{\\eta_y} A_y\\!\\bigl(\\eta_y^*(x_i)\\bigr) = \\mathbb{E}_{p(y\\,\\mid\\,\\eta_y^*(x_i))}[T_y(Y)]"
+      - type: p
+        text: "C'est l'espérance de la statistique suffisante de $Y$ sous sa loi avec le paramètre incliné. *C'est exactement la valeur que l'étape E impute* à la place de $T_y(y_i)$ manquant — la valeur que $y_i$ aurait en moyenne sachant $x_i$. Pas de calcul de gradient explicite : l'espérance de la statistique suffisante *est* le gradient."
+      - type: h3
+        text: "Catalogue par famille — formules closes"
+      - type: table
+        headers: ["Famille de Y", "$T_y(y)$", "$\\nabla_{\\eta_y} A_y(\\eta_y^*)$", "Valeur imputée $\\widetilde{T}_y(x_i)$"]
+        rows:
+          - ["Gaussienne", "$y$", "$\\eta_y^*$", "$\\eta_y + \\eta_{xy} \\cdot T_x(x_i)$"]
+          - ["Bernoulli", "$y \\in \\{0,1\\}$", "$\\sigma(\\eta_y^*)$", "$\\sigma\\!\\bigl(\\eta_y + \\eta_{xy}\\cdot T_x(x_i)\\bigr)$"]
+          - ["Poisson", "$y \\in \\mathbb{N}$", "$e^{\\eta_y^*}$", "$\\exp\\!\\bigl(\\eta_y + \\eta_{xy}\\cdot T_x(x_i)\\bigr)$"]
+          - ["Gamma", "$-y$", "$-1/\\eta_y^*$", "$-1/(\\eta_y + \\eta_{xy}\\cdot T_x(x_i))$"]
+      - type: p
+        text: "Dans tous les cas la recette est identique : évaluer la fonction de lien inverse (la dérivée de $A_y$) au paramètre naturel incliné $\\eta_y^*(x_i)$. Numériquement, c'est une seule évaluation de fonction — pas d'intégrale, pas de simulation Monte-Carlo. Si la famille n'a pas de forme close (mélange, modèle hiérarchique), on peut toujours estimer l'espérance par Monte-Carlo en tirant quelques $y \\sim p(y \\mid \\eta_y^*(x_i))$ et en moyennant leurs $T_y(y)$."
+      - type: callout
+        title: "Le fil conducteur des trois chapitres."
+        text: "Au chapitre 4, la mise à jour était deux additions. Au chapitre 5, la statistique suffisante jointe s'est enrichie d'un bloc croisé — toujours deux additions. Ici, l'obstruction vient d'une statistique $T_y(y_i)$ non observée. L'algorithme EM la remplace par son espérance sous le modèle courant — exactement une bille imputée dans l'urne de $\\lambda^{(xy)}$. La mécanique des deux additions reprend ses droits ; seule la nature de la bille change : observée pour les paires, imputée pour les marginales. Et le gradient de cet algorithme — via l'identité de Louis ou la différentiation implicite — reste calculable en termes de statistiques suffisantes et de log-partition, fidèle jusqu'au bout à la géométrie de la famille exponentielle."
+
+  - number: "§ 8"
+    title: "Simulation interactive"
+    content:
+      - type: p
+        text: "La simulation illustre le comportement des trois compteurs $\\nu_n^x$, $\\nu_n^y$, $\\nu_n^{xy}$ et des distributions a posteriori correspondantes, sous l'approximation des priors produits (§4). Le modèle est gaussien avec variances unitaires et prior gaussien $N(0, 1/\\nu_0)$ sur chaque paramètre avec $\\nu_0 = 0.4$."
+      - type: h3
+        text: "Ce que la visualisation révèle"
+      - type: p
+        text: "Le panneau du bas affiche les trois densités a posteriori sur $\\eta_x$, $\\eta_y$, $\\eta_{xy}$ comme des gaussiennes, avec leur intervalle de confiance à 95 %. Ajoutez de nombreuses observations X seules : la densité de $\\eta_x$ se concentre rapidement, mais celle de $\\eta_{xy}$ reste inchangée. Ajoutez des observations Y seules : la densité de $\\eta_y$ se concentre, celle de $\\eta_{xy}$ reste plate. Seules les paires concentrent la densité de $\\eta_{xy}$."
+      - type: p
+        text: "Le nuage de points montre les trois types d'observations dans leur géométrie naturelle : les observations X seules (rouge) sur l'axe X, les observations Y seules (bleu) sur l'axe Y, les paires (vert) dans le plan. La droite en pointillés est $y = \\hat{\\eta}_{xy} \\cdot x$ avec sa bande de confiance à 95 %. Cette bande ne rétrécit qu'avec les paires."
+      - type: widget
+        name: SparseUpdateWidget
+      - type: callout
+        title: "Lecture quantitative."
+        text: "Avec les données initiales (5 X seuls, 5 Y seuls, 4 paires), $\\nu^x = 9.4$ et $\\nu^y = 9.4$ mais $\\nu^{xy} = 4.4$. Ajoutez 10 observations X seules : $\\nu^x$ passe à 19.4 — la précision sur $\\eta_x$ double — mais $\\nu^{xy}$ reste à 4.4. La bande de régression ne bouge pas d'un pixel. C'est la traduction directe de l'incompressibilité du §5."
+
+  - number: "Synthèse"
+    title: "Ce que la structure des données hétérogènes révèle"
+    content:
+      - type: table
+        headers: ["Objet", "Rôle", "Propriété clé"]
+        rows:
+          - ["$\\nu_n^x,\\,\\nu_n^y,\\,\\nu_n^{xy}$", "Trois compteurs indépendants", "$\\nu_n^{xy}$ ne croît qu'avec les paires (type A)"]
+          - ["$\\lambda_n^{(xy)} = \\sum_{\\text{A}} T_x \\otimes T_y$", "Mémoire du couplage", "Seules les observations appariées y contribuent directement"]
+          - ["Vraisemblance marginale exacte", "Brise la conjugaison", "Via $A_y(\\eta_y + \\eta_{xy}^\\top T_x(x_i))$ non linéaire"]
+          - ["Approximation prior-produit", "Rétablit la conjugaison", "Exacte si $\\eta_{xy} = 0$, approchée sinon"]
+          - ["EM — étape E", "Imputation de $T_y(y_i)$", "$= \\nabla_{\\eta_y} A_y(\\eta_y^*(x_i))$ — espérance cond."]
+          - ["EM — étape M", "Mise à jour conjuguée", "Deux additions avec statistiques complétées (ch. 5, §7)"]
+          - ["$\\mathrm{Var}[\\eta_{xy}] = 1/\\nu_n^{xy}$", "Incertitude sur le couplage", "Incompressible par les seules données marginales"]
+      - type: callout
+        title: "Le résultat le plus profond."
+        text: "Le théorème de suffisance établit que toute l'information sur $\\eta_{xy}$ dans les données *appariées* est capturée par $\\lambda^{(xy)} = \\sum_k T_x(x_k) \\otimes T_y(y_k)$. Ce théorème ne dit rien sur les données marginales — non parce qu'elles sont non-informatives, mais parce que leur information sur $\\eta_{xy}$ passe par la log-partition non linéaire $A_y$ — exactement l'asymétrie fondamentale conditionnement/marginalisation du chapitre 5 (§4). L'algorithme EM transforme cette information indirecte en statistiques suffisantes imputées, et les deux additions reprennent leurs droits."

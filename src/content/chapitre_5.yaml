@@ -1,0 +1,401 @@
+label: "Inférence Bayésienne · Chapitre 5"
+title: "Interactions entre\nFamilles Exponentielles"
+subtitle: "Un seul paramètre *η_xy* couple deux distributions arbitraires — pas nécessairement de la même famille. La conditionnelle reste dans la sienne ; la marginale en sort. De cette asymétrie naissent les modèles linéaires généralisés."
+footer_right: "Interactions · Familles Exponentielles"
+
+sections:
+  - number: "§ 1"
+    title: "De la variable isolée au couple"
+    content:
+      - type: p
+        text: "Au chapitre précédent, on traitait $x$ seul. Dès qu'on observe un couple $(x, y)$, la question est : comment écrire $p(x,y\\mid\\eta)$ comme une famille exponentielle ? La réponse tient à la structure même de la définition canonique."
+      - type: p
+        text: "Il suffit de construire une *statistique suffisante jointe* qui concatène les statistiques marginales et leurs produits :"
+      - type: math
+        label: "Statistique suffisante jointe — forme générale"
+        tex: "T(x,y) = \\begin{pmatrix} T_x(x) \\\\ T_y(y) \\\\ T_x(x) \\otimes T_y(y) \\end{pmatrix}, \\qquad \\eta = \\begin{pmatrix} \\eta_x \\\\ \\eta_y \\\\ \\eta_{xy} \\end{pmatrix}"
+      - type: p
+        text: "Le produit naturel $\\eta^\\top T(x,y)$ se décompose alors en trois blocs distincts, chacun avec son rôle propre :"
+      - type: math
+        tex: "\\eta^\\top T(x,y) = \\underbrace{\\eta_x^\\top T_x(x)}_{\\text{information sur }x} +\\;\\underbrace{\\eta_y^\\top T_y(y)}_{\\text{information sur }y} +\\;\\underbrace{\\mathrm{vec}(\\eta_{xy})^\\top(T_x(x)\\otimes T_y(y))}_{\\text{interaction}}"
+      - type: p
+        text: "La log-partition $A(\\eta_x, \\eta_y, \\eta_{xy})$ normalise l'ensemble. Toute la nouveauté — et toute la richesse — réside dans le troisième bloc."
+      - type: callout
+        title: "Un seul cadre, deux variables."
+        text: "On n'a pas créé de nouvelle théorie : la famille exponentielle jointe est une famille exponentielle ordinaire, avec une statistique suffisante de plus grande dimension. Tout ce qui a été prouvé au chapitre 4 s'applique immédiatement — y compris la mise à jour bayésienne en deux additions."
+
+  - number: "§ 2"
+    title: "Le paramètre d'interaction η_xy"
+    content:
+      - type: p
+        text: "Quand $T_x$ est de dimension $k_x$ et $T_y$ de dimension $k_y$, le bloc d'interaction $\\eta_{xy}$ est une matrice de taille $k_x \\times k_y$. Dans le cas scalaire ($k_x = k_y = 1$), c'est simplement un réel — le cas canonique qui sera visualisé dans la simulation."
+      - type: box
+        title: "Définition — paramètre d'interaction"
+        tex: "\\eta_{xy} \\in \\mathbb{R}^{k_x \\times k_y}, \\qquad \\text{terme d'interaction } = \\, T_x(x)^\\top \\,\\eta_{xy}\\, T_y(y)"
+      - type: p
+        text: "Sa signification structurelle est immédiate : quand $\\eta_{xy} = 0$, le terme d'interaction disparaît et la densité jointe se factorise :"
+      - type: math
+        tex: "\\eta_{xy} = 0 \\iff p(x,y\\mid\\eta) = p_x(x\\mid\\eta_x)\\,p_y(y\\mid\\eta_y) \\iff X \\perp\\!\\!\\!\\perp Y"
+      - type: p
+        text: "La norme de $\\eta_{xy}$ mesure l'intensité du couplage. Son rang révèle la *dimensionnalité effective* de l'interaction : un rang 1 signifie que la dépendance passe entièrement par un seul axe dans l'espace des statistiques suffisantes."
+      - type: h3
+        text: "Contrainte de normalisabilité — dérivation depuis les premiers principes"
+      - type: p
+        text: "Repartons de la condition générale. Pour une seule variable $z$ dans une famille exponentielle, l'espace naturel des paramètres admissibles est l'ensemble des $\\eta$ pour lesquels la log-partition est finie :"
+      - type: math
+        label: "Domaine naturel — définition"
+        tex: "\\Omega = \\Bigl\\{\\,\\eta \\in \\mathbb{R}^k \\;:\\; \\int h(z)\\,e^{\\,\\eta^\\top T(z)}\\,dz < \\infty\\,\\Bigr\\}"
+      - type: p
+        text: "h(z) apparaît bien dans l'intégrale et peut en principe affecter sa convergence — une mesure de base qui décroît vite à l'infini peut rendre convergente une intégrale qui ne le serait pas sans elle. Pour la famille gaussienne scalaire, $h(z) = (2\\pi)^{-1/2}$ est une constante positive : elle se factorise hors de l'intégrale et ne change pas la question de convergence. C'est un fait spécifique au cas gaussien, pas une propriété générale."
+      - type: p
+        text: "Avec $T(z) = (z,\\, z^2)^\\top$ et $\\eta = (\\eta_1,\\, \\eta_2)^\\top$, l'intégrale $\\int e^{\\,\\eta_1 z + \\eta_2 z^2}\\,dz$ converge si et seulement si le coefficient du terme *dominant* pour $|z| \\to \\infty$ est négatif : $\\eta_2 < 0$. La partie linéaire $\\eta_1 z$ croît plus lentement que le terme quadratique et ne pose jamais de problème dès que $\\eta_2 < 0$."
+      - type: p
+        text: "Pour un vecteur $z \\in \\mathbb{R}^p$ avec statistiques quadratiques, la généralisation est immédiate : l'intégrale $\\int e^{\\,-\\frac{1}{2} z^\\top Q z\\,+\\,b^\\top z}\\,dz$ converge si et seulement si la matrice $Q$ est *définie positive* — c'est la condition pour que l'exponentielle décroisse dans toutes les directions."
+      - type: h3
+        text: "Application au modèle joint (x, y)"
+      - type: p
+        text: "La densité jointe $p(x, y)$ est une famille exponentielle avec variable $z = (x, y)^\\top \\in \\mathbb{R}^2$. Dans le cas $T_x(x) = x$, $T_y(y) = y$, l'exposant s'écrit :"
+      - type: math
+        tex: "\\eta_x x + \\eta_y y + \\eta_{xy}\\,x y - \\tfrac{1}{2}x^2 - \\tfrac{1}{2}y^2 = -\\tfrac{1}{2}\\,z^\\top Q\\,z + b^\\top z"
+      - type: p
+        text: "où $b = (\\eta_x, \\eta_y)^\\top$ et $Q$ est la matrice de précision lue directement depuis l'exposant — les coefficients diagonaux viennent de $-\\frac{1}{2}x^2$ et $-\\frac{1}{2}y^2$, le terme hors-diagonale de $\\eta_{xy}\\,xy = -\\frac{1}{2}(-2\\eta_{xy})\\,xy$ :"
+      - type: math
+        label: "Matrice de précision du modèle joint"
+        tex: "Q = \\begin{pmatrix}1 & -\\eta_{xy}\\\\ -\\eta_{xy} & 1\\end{pmatrix}"
+      - type: p
+        text: "La condition de normalisabilité est $Q \\succ 0$. On la vérifie par les critères de Sylvester — les mineurs principaux doivent être strictement positifs :"
+      - type: math
+        tex: "\\Delta_1 = 1 > 0 \\quad\\checkmark, \\qquad \\Delta_2 = \\det(Q) = 1 - \\eta_{xy}^2 > 0 \\iff |\\eta_{xy}| < 1"
+      - type: box
+        title: "Domaine naturel du modèle joint — cas linéaire"
+        tex: "\\Omega_{xy} = \\bigl\\{(\\eta_x, \\eta_y, \\eta_{xy}) \\in \\mathbb{R}^3 \\;:\\; |\\eta_{xy}| < 1\\bigr\\}"
+      - type: p
+        text: "La borne $|\\eta_{xy}| < 1$ n'est pas arbitraire — c'est exactement la condition pour que la corrélation entre $X$ et $Y$ reste dans $(-1, 1)$, ce que l'on retrouvera : à l'optimum gaussien, $\\eta_{xy} = -\\rho / \\sigma_x \\sigma_y$ où $\\rho$ est le coefficient de corrélation."
+      - type: h3
+        text: "Pourquoi la forme de T change le domaine"
+      - type: p
+        text: "La dérivation ci-dessus repose sur la croissance de $T_x(x) T_y(y) = xy$ lorsque $|(x,y)| \\to \\infty$ : le terme d'interaction peut compenser l'ancrage quadratique et faire diverger l'intégrale. Pour des statistiques bornées — comme $T_x(x) = \\mathrm{sgn}(x) \\in \\{-1, +1\\}$ — le terme d'interaction est borné par $|\\eta_{xy}|$ quelle que soit la valeur de $x$ : il ne peut pas compenser le terme quadratique, qui domine toujours. L'ancrage suffit alors à garantir $Q \\succ 0$ pour tout $\\eta_{xy} \\in \\mathbb{R}$ et le domaine naturel est $\\mathbb{R}^3$ entier."
+      - type: callout
+        title: "Principe général."
+        text: "Le domaine naturel $\\Omega$ est convexe et ouvert — c'est une propriété universelle des familles exponentielles. La borne $|\\eta_{xy}| < 1$ délimite la frontière de cet ensemble convexe : sur la frontière, la gaussienne jointe dégénère en une masse de Dirac sur la droite $y = \\pm x$. Au-delà, l'intégrale diverge et il n'existe tout simplement aucune distribution normalisable avec ce paramètre."
+      - type: h3
+        text: "Les statistiques suffisantes du couplage sont libres"
+      - type: p
+        text: "Jusqu'ici on a écrit le terme d'interaction comme $T_x(x)^\\top \\eta_{xy} T_y(y)$ en réutilisant les mêmes fonctions $T_x$ et $T_y$ que les termes marginaux. C'est un choix de notation commode, pas une contrainte. La forme la plus générale de la densité jointe introduit des fonctions de couplage $\\phi_x$ et $\\phi_y$ indépendantes des statistiques marginales :"
+      - type: math
+        label: "Forme générale — statistiques de couplage distinctes"
+        tex: "\\log p(x,y) = \\underbrace{\\eta_x^\\top T_x(x)}_{\\text{marginal }X} +\\;\\underbrace{\\eta_y^\\top T_y(y)}_{\\text{marginal }Y} +\\;\\underbrace{\\eta_{xy}^\\top\\bigl(\\phi_x(x)\\otimes\\phi_y(y)\\bigr)}_{\\text{couplage}} - A(\\eta)"
+      - type: p
+        text: "Les quatre fonctions $T_x,\\, T_y,\\, \\phi_x,\\, \\phi_y$ sont des choix de modélisation orthogonaux. La loi marginale de $X$ est gouvernée par $T_x$ ; la façon dont $X$ influence la loi de $Y$ est gouvernée par $\\phi_x$. Rien n'impose $\\phi_x = T_x$."
+      - type: p
+        text: "Le paramètre incliné de la conditionnelle devient alors :"
+      - type: math
+        tex: "\\eta_y^*(x) = \\eta_y + \\eta_{xy}^\\top\\,\\phi_x(x)"
+      - type: p
+        text: "C'est $\\phi_x(x)$ — et non $T_x(x)$ — qui incline le paramètre de $Y$. Deux observations $x$ et $x'$ qui ont le même $T_x(x) = T_x(x')$ mais des $\\phi_x$ différents induiront des lois conditionnelles de $Y$ différentes. Inversement, deux observations avec $T_x(x) \\neq T_x(x')$ mais $\\phi_x(x) = \\phi_x(x')$ induiront exactement la même loi pour $Y$."
+      - type: p
+        text: "La mise à jour bayésienne en tient compte : les trois blocs de $\\lambda$ accumulent des statistiques potentiellement distinctes,"
+      - type: math
+        tex: "\\lambda^{(x)} \\mathrel{+}= T_x(x_i),\\quad \\lambda^{(y)} \\mathrel{+}= T_y(y_j),\\quad \\lambda^{(xy)} \\mathrel{+}= \\phi_x(x_k)\\otimes\\phi_y(y_k)"
+      - type: p
+        text: "et les trois compteurs $\\nu$ se mettent à jour indépendamment selon le type d'observation disponible, comme discuté en §7."
+      - type: callout
+        title: "Exemple."
+        text: "$X$ gaussien avec $T_x(x) = (x, x^2)$ — la loi marginale de $X$ est entièrement décrite par sa moyenne et sa variance. Mais on pose $\\phi_x(x) = \\mathrm{sgn}(x)$ pour le couplage : seul le *signe* de $X$ incline la loi de $Y$, pas sa magnitude. Deux patients avec des températures $+0.3^\\circ$C et $+2^\\circ$C au-dessus de la normale induisent la même loi pour un symptôme binaire — la direction importe, pas l'amplitude. Ce modèle est parfaitement cohérent et normalisable ; il serait impossible à exprimer si on forçait $\\phi_x = T_x$."
+
+  - number: "§ 3"
+    title: "Théorème fondamental : la conditionnelle reste dans sa famille"
+    content:
+      - type: p
+        text: "La propriété la plus remarquable de la densité jointe exponentielle est la suivante : si on conditionne sur *tous les voisins directs* de $Y$ dans le modèle joint — c'est-à-dire sur sa *couverture de Markov* — la loi de $Y$ reste dans la même famille exponentielle, avec un paramètre naturel *incliné* par chaque voisin."
+      - type: box
+        title: "Théorème — la conditionnelle sur la couverture de Markov"
+        tex: "p\\bigl(y\\mid\\mathbf{x}_{\\partial Y},\\eta\\bigr) \\propto h_y(y)\\,\\exp\\Bigl( \\eta_y^*(\\mathbf{x}_{\\partial Y})^\\top T_y(y) \\Bigr), \\quad \\eta_y^* = \\eta_y + \\sum_{k\\,:\\,\\eta_{ky}\\neq 0} \\eta_{ky}^\\top T_k(x_k)"
+      - type: p
+        text: "La somme porte sur tous les voisins directs $k$ de $Y$ — ceux pour lesquels $\\eta_{ky} \\neq 0$. Chaque voisin contribue un décalage $\\eta_{ky}^\\top T_k(x_k)$ au paramètre naturel de $Y$. Le résultat est encore une distribution dans la famille de $Y$ — la conjugaison tient."
+      - type: math
+        label: "Paramètre incliné — formule générale"
+        tex: "\\eta_y^*\\!(\\mathbf{x}_{\\partial Y}) = \\eta_y + \\sum_{k \\in \\partial Y} \\eta_{ky}^\\top T_k(x_k)"
+      - type: h3
+        text: "La limite cruciale : conditionnement partiel et chemins indirects"
+      - type: p
+        text: "Le théorème exige que l'on conditionne sur *tous* les voisins de $Y$, pas sur un sous-ensemble. Si on ne conditionne que sur certains voisins — ou sur des variables plus lointaines dans le graphe — la loi de $Y$ sort généralement de sa famille, pour la même raison que la marginale : il faut intégrer sur les variables non observées, ce qui fait apparaître des log-partitions non linéaires."
+      - type: p
+        text: "La chaîne $X - Y - Z$ illustre exactement cette limite. Avec $\\eta_{xy} \\neq 0$, $\\eta_{yz} \\neq 0$, $\\eta_{xz} = 0$ :"
+      - type: math
+        label: "Chaîne X–Y–Z — deux couplages, pas de lien direct"
+        tex: "p(x,y,z) \\propto \\exp\\!\\Bigl( \\eta_x T_x + \\eta_y T_y + \\eta_z T_z + \\eta_{xy}\\,T_x T_y + \\eta_{yz}\\,T_y T_z \\Bigr)"
+      - type: p
+        text: "Le théorème s'applique correctement à chaque conditionnelle *sur la couverture complète* :"
+      - type: table
+        headers: ["Conditionnelle", "Couverture complète ?", "Paramètre incliné", "Reste dans la famille ?"]
+        rows:
+          - [{text: "$p(y\\mid x, z)$", class: ""}, {text: "Oui — ∂Y = {X, Z}", class: "accent"}, "$\\eta_y + \\eta_{xy}\\,T_x + \\eta_{yz}\\,T_z$", {text: "Oui", class: "accent"}]
+          - [{text: "$p(x\\mid y)$", class: ""}, {text: "Oui — ∂X = {Y}", class: "accent"}, "$\\eta_x + \\eta_{xy}\\,T_y$", {text: "Oui", class: "accent"}]
+          - ["$p(z\\mid x)$", "Non — Z est lié à X via Y", "$\\int p(z\\mid y)\\,p(y\\mid x)\\,dy$", "Non — mélange de distributions"]
+      - type: p
+        text: "La conditionnelle $p(z\\mid x)$ est un mélange continu de distributions dans la famille de $Z$, pondéré par $p(y \\mid x)$. Elle sort donc de la famille — exactement comme §4 le prédit pour la marginale. Formellement :"
+      - type: math
+        tex: "p(z\\mid x) = \\int p(z\\mid y)\\,p(y\\mid x)\\,dy \\propto \\int h_z(z)\\, \\exp\\!\\bigl(\\eta_{yz}^*(y)^\\top T_z(z)\\bigr) \\cdot p(y\\mid x)\\,dy"
+      - type: p
+        text: "L'exposant dépend de $y$ à travers $\\eta_{yz}^*(y) = \\eta_z + \\eta_{yz}\\,T_y(y)$. Intégrer sur $y$ revient à évaluer la log-partition de $Y$ au paramètre incliné par $z$ — le même mécanisme de sortie de famille qu'en §4, mais cette fois pour la conditionnelle distante plutôt que pour la marginale."
+      - type: h3
+        text: "Absence de couplage direct n'implique pas indépendance marginale"
+      - type: p
+        text: "Hammersley-Clifford (§6) garantit $X \\perp\\!\\!\\!\\perp Z \\mid Y$ quand $\\eta_{xz} = 0$ — une indépendance *conditionnelle*. Mais $X$ et $Z$ sont *marginalement dépendants* : la corrélation entre $T_x(X)$ et $T_z(Z)$ est non nulle dès que les deux couplages existent. La loi marginale jointe de $(X, Z)$ est :"
+      - type: math
+        tex: "p(x,z) = \\int p(x,y,z)\\,dy \\propto h_x h_z \\exp\\!\\Bigl( \\eta_x T_x + \\eta_z T_z + \\underbrace{A_y(\\eta_y + \\eta_{xy} T_x + \\eta_{yz} T_z)}_{\\text{couplage indirect }X{-}Z} \\Bigr)"
+      - type: p
+        text: "Le terme $A_y(\\eta_y + \\eta_{xy} T_x + \\eta_{yz} T_z)$ couple $T_x$ et $T_z$ de façon non linéaire, même en l'absence de $\\eta_{xz}$ direct. C'est la *dépendance induite* : marginaliser sur un intermédiaire connecté à deux variables crée un couplage apparent entre elles — l'analogue probabiliste du lemme de d-séparation dans les graphes bayésiens."
+      - type: callout
+        title: "Récapitulatif corrigé du théorème."
+        text: "$p(y \\mid \\mathbf{x}_{\\partial Y})$ reste dans la famille de $Y$ si et seulement si on conditionne sur la couverture complète de $Y$. Dès qu'un voisin est manquant — ou qu'on conditionne sur une variable non voisine — on intègre sur des inconnues et on sort de la famille. En particulier, l'absence de couplage direct $\\eta_{xz} = 0$ garantit $X \\perp Z \\mid Y$, pas $X \\perp Z$ : la dépendance indirecte via $Y$ survit toujours à la marginalisation."
+      - type: h3
+        text: "Connexion aux modèles linéaires généralisés"
+      - type: p
+        text: "Dans un GLM, on modélise explicitement $p(y\\mid x)$ — on suppose que $X$ est la couverture complète de $Y$, c'est-à-dire qu'il n'existe aucune variable latente couplée à $Y$ mais non observée. Sous cette hypothèse, le paramètre incliné $\\eta_y^*(x) = \\eta_y + \\eta_{xy}^\\top T_x(x)$ suffit et la conditionnelle reste dans sa famille. La « fonction de lien » n'est autre que $\\nabla A_y$ vue depuis l'autre sens."
+      - type: callout
+        title: "Intuition géométrique."
+        text: "Chaque valeur observée de la couverture de Markov sélectionne un point dans la famille de $Y$ via la carte affine $\\mathbf{x}_{\\partial Y} \\mapsto \\eta_y + \\sum_{k \\in \\partial Y} \\eta_{ky}^\\top T_k(x_k)$. Faire varier un voisin $x_k$ trace une droite dans l'espace des paramètres naturels de $Y$ — dans la direction $\\eta_{ky}$, indépendamment des autres voisins. Les contributions des voisins s'*additionnent*."
+
+  - number: "§ 4"
+    title: "La marginale sort de sa famille"
+    content:
+      - type: p
+        text: "La situation est asymétrique : si la conditionnelle de $Y$ sachant $X$ reste dans la famille de $Y$, la *marginale de $X$*, elle, en sort généralement. L'intégration sur $y$ fait apparaître la log-partition de $Y$ évaluée au paramètre incliné :"
+      - type: math
+        label: "Loi marginale de X — forme générale"
+        tex: "p(x\\mid\\eta) \\propto h_x(x)\\,\\exp\\!\\Bigl( \\eta_x^\\top T_x(x) + A_y\\!\\bigl(\\eta_y + \\eta_{xy}^\\top T_x(x)\\bigr) \\Bigr)"
+      - type: p
+        text: "Le terme $A_y(\\eta_y + \\eta_{xy}^\\top T_x(x))$ est en général une fonction *non linéaire* de $T_x(x)$. La statistique suffisante de la marginale ne peut donc pas se résumer à $T_x(x)$ seul — sauf exception."
+      - type: callout
+        title: "Asymétrie fondamentale."
+        text: "Conditionner est gratuit dans la famille exponentielle. Marginaliser est coûteux — sauf dans les cas polynomiaux. C'est cette asymétrie qui justifie l'omniprésence des modèles conditionnels (GLM, réseaux de neurones) par rapport aux modèles joints complets."
+
+  - number: "§ 5"
+    title: "L'interaction cross-type — deux familles différentes"
+    content:
+      - type: p
+        text: "Rien dans la construction précédente n'exige que $X$ et $Y$ appartiennent à la même famille exponentielle. Le terme d'interaction $\\eta_{xy} T_x(x) T_y(y)$ couple les statistiques suffisantes de deux familles *arbitraires et distinctes*."
+      - type: p
+        text: "La conditionnelle de $Y$ sachant $X$ reste dans la famille de $Y$ — peu importe la famille de $X$. La seule trace de $X$ dans cette conditionnelle est la valeur scalaire $T_x(x)$, qui incline le paramètre naturel."
+      - type: h3
+        text: "Catalogue des interactions cross-type"
+      - type: table
+        headers: ["$T_x(x)$", "$T_y(y)$", "Forme du couplage", "Effet sur $p(y|x)$"]
+        rows:
+          - ["$x$", "$y$", "$\\eta_{xy}\\cdot x\\cdot y$", "Mode de $Y$ se déplace linéairement en $x$"]
+          - ["$x$", "$|y|$", "$\\eta_{xy}\\cdot x\\cdot|y|$", "Dispersion de $Y$ modulée par $x$"]
+          - ["$\\mathrm{sgn}(x)$", "$y$", "$\\eta_{xy}\\cdot\\mathrm{sgn}(x)\\cdot y$", "Décalage discret du mode (flip à $x=0$)"]
+          - ["$|x|$", "$\\mathrm{sgn}(y)$", "$\\eta_{xy}\\cdot|x|\\cdot\\mathrm{sgn}(y)$", "Intensité de $X$ biaise l'orientation de $Y$"]
+      - type: p
+        text: "Dans chaque cas, le paramètre incliné de $Y$ est $\\eta_y^*(x) = \\eta_y + \\eta_{xy}\\cdot T_x(x)$. Ce qui change, c'est la *forme de la fonction* $x \\mapsto T_x(x)$ qui module cette inclinaison — linéaire, en V, en marche d'escalier, symétrique ou non."
+      - type: callout
+        title: "La famille de $X$ est transparente."
+        text: "Du point de vue de $Y$, ce qui importe n'est pas la distribution de $X$ mais seulement la valeur de $T_x(x)$. Deux $x$ donnant le même $T_x(x)$ induisent exactement la même loi conditionnelle pour $Y$. C'est le théorème de suffisance vu sous l'angle de l'interaction."
+
+  - number: "§ 5bis"
+    title: "Directionalité — ce que η_xy peut et ne peut pas encoder"
+    content:
+      - type: p
+        text: "Une question naturelle se pose : peut-on faire en sorte que l'interaction soit *orientée* — que $X$ influence $Y$ mais pas l'inverse ? La réponse courte est non, pas dans le cadre d'une densité jointe. Mais la nuance mérite d'être déroulée avec soin, car la structure de $\\eta_{xy}$ crée bien une forme d'asymétrie — géométrique, pas causale."
+      - type: h3
+        text: "L'obstacle fondamental : la symétrie du scalaire"
+      - type: p
+        text: "Le terme d'interaction est un scalaire. En permutant les rôles de $X$ et $Y$ :"
+      - type: math
+        tex: "T_x(x)^\\top\\,\\eta_{xy}\\,T_y(y) \\ =\\ T_y(y)^\\top\\,\\eta_{xy}^\\top\\,T_x(x)"
+      - type: p
+        text: "Les deux expressions sont identiques — c'est la même valeur scalaire, écrite dans deux ordres différents. La densité jointe $p(x,y)$ est donc invariante par l'échange $(x,y,\\eta_{xy}) \\leftrightarrow (y,x,\\eta_{xy}^\\top)$ :"
+      - type: math
+        tex: "p(x,y\\mid\\eta_x,\\eta_y,\\eta_{xy}) = p(y,x\\mid\\eta_y,\\eta_x,\\eta_{xy}^\\top)"
+      - type: p
+        text: "Un modèle avec couplage $\\eta_{xy}$ dans le sens $X \\to Y$ est *rigoureusement indiscernable* — du point de vue de la densité jointe — d'un modèle avec couplage $\\eta_{xy}^\\top$ dans le sens $Y \\to X$. La distribution de probabilité sur les couples $(x, y)$ ne peut pas encoder de directionalité : elle est une mesure sur un produit d'espaces, pas sur des flèches."
+      - type: callout
+        title: "La directionalité est une propriété du générateur, pas de la distribution."
+        text: "Deux physiciens peuvent regarder la même loi jointe gaussienne et l'un dire « $X$ cause $Y$ » et l'autre « $Y$ cause $X$ » : aucune donnée d'observation ne peut les départager si leur modèle est seulement $p(x,y)$. C'est la thèse centrale de l'inférence causale (Pearl, Spirtes)."
+      - type: h3
+        text: "Ce que la structure de η_xy encode réellement : l'asymétrie des conditionnelles"
+      - type: p
+        text: "Même si $p(x,y)$ ne porte pas de directionalité, les deux conditionnelles $p(y\\mid x)$ et $p(x\\mid y)$ ont des formes *généralement différentes*, et c'est là que la structure de $\\eta_{xy}$ joue un rôle."
+      - type: p
+        text: "Supposons $T_x$ de dimension $k_x$ et $T_y$ de dimension $k_y$, avec $\\eta_{xy} \\in \\mathbb{R}^{k_x \\times k_y}$. Les deux paramètres inclinés sont :"
+      - type: math
+        label: "Paramètres inclinés dans les deux sens"
+        tex: "\\eta_y^*(x) = \\eta_y + \\eta_{xy}^\\top T_x(x) \\in \\mathbb{R}^{k_y}, \\qquad \\eta_x^*(y) = \\eta_x + \\eta_{xy}\\, T_y(y) \\in \\mathbb{R}^{k_x}"
+      - type: p
+        text: "La décomposition en valeurs singulières de $\\eta_{xy} = U\\,\\Sigma\\,V^\\top$ révèle la géométrie de cette inclinaison. Les colonnes de $V$ sont les *directions de* $T_x$ qui modulent $\\eta_y^*$ ; les colonnes de $U$ sont les *directions de* $T_y$ qui modulent $\\eta_x^*$. Les valeurs singulières $\\sigma_k$ mesurent l'intensité de chaque canal."
+      - type: h3
+        text: "Rang de η_xy et dimensionnalité de l'interaction"
+      - type: p
+        text: "Si $\\mathrm{rang}(\\eta_{xy}) = r$, l'interaction passe entièrement par $r$ canaux indépendants. Au rang 1 — le cas le plus simple — $\\eta_{xy} = \\sigma\\, u v^\\top$ et :"
+      - type: math
+        tex: "\\eta_y^*(x) = \\eta_y + \\sigma\\,(v^\\top T_x(x))\\,u, \\qquad \\eta_x^*(y) = \\eta_x + \\sigma\\,(u^\\top T_y(y))\\,v"
+      - type: p
+        text: "Du côté $Y$, seule la projection $v^\\top T_x(x)$ importe — toute l'information de $x$ est compressée en un scalaire avant d'incliner $\\eta_y$ dans la direction $u$. Symétriquement du côté $X$. La structure de rang révèle la *dimensionnalité effective du canal d'interaction*, mais de façon parfaitement symétrique."
+      - type: h3
+        text: "La non-carrure de η_xy crée une asymétrie structurelle"
+      - type: p
+        text: "Si $k_x \\neq k_y$ — statistiques suffisantes de dimensions différentes — alors $\\eta_{xy}$ est une matrice rectangulaire. Les deux inclinaisons ont alors des *dimensions différentes* :"
+      - type: table
+        headers: ["Conditionnelle", "Paramètre incliné", "Dimension", "Sens du transfert"]
+        rows:
+          - ["$p(y\\mid x)$", "$\\eta_y + \\eta_{xy}^\\top T_x(x)$", "$k_y$", "$k_x$ dimensions → $k_y$ dim."]
+          - ["$p(x\\mid y)$", "$\\eta_x + \\eta_{xy}\\, T_y(y)$", "$k_x$", "$k_y$ dimensions → $k_x$ dim."]
+      - type: p
+        text: "Si $k_x > k_y$, le passage $X \\to Y$ est une *compression* (projection de $k_x$ sur $k_y$ dimensions), tandis que $Y \\to X$ est une *expansion*. Les deux conditionnelles ont structurellement des propriétés différentes — l'une est un goulot d'étranglement, l'autre un enrichissement. Mais ces propriétés sont déterminées par le ratio $k_x / k_y$, pas par un choix de direction causale."
+      - type: h3
+        text: "Comment encoder une vraie directionalité : la factorisation de la jointe"
+      - type: p
+        text: "La seule façon d'inscrire une directionalité dans le modèle est de choisir explicitement une *factorisation causale* de la loi jointe. Déroulons les deux sens pour voir quelles contraintes structurelles cela impose sur le triplet $(\\eta_x, \\eta_y, \\eta_{xy})$ et les fonctions $(T_x, T_y, \\phi_x, \\phi_y)$ — en ignorant les constantes de normalisation, toujours intractables."
+      - type: h3
+        text: "Factorisation X → Y"
+      - type: p
+        text: "On postule $p(x)$ dans la famille de $X$ et $p(y\\mid x)$ dans la famille de $Y$ à paramètre incliné. En développant le produit :"
+      - type: math
+        tex: "\\log p(x,y) \\propto \\;\\eta_x^\\top T_x(x) \\;+\\; \\eta_y^\\top T_y(y) \\;+\\; \\phi_x(x)^\\top \\eta_{xy}\\, \\mathbf{T_y(y)}"
+      - type: p
+        text: "La statistique de couplage côté $Y$ est *forcée* d'être $T_y$ — la même fonction que celle qui définit la loi marginale de $Y$. On ne peut pas choisir $\\phi_y \\neq T_y$ librement : ce serait modéliser $p(y\\mid x)$ dans une famille différente de celle de $Y$."
+      - type: h3
+        text: "Factorisation Y → X"
+      - type: p
+        text: "Le sens inverse force symétriquement :"
+      - type: math
+        tex: "\\log p(x,y) \\propto \\;\\eta_x^\\top \\mathbf{T_x(x)} \\;+\\; \\eta_y^\\top T_y(y) \\;+\\; T_x(x)^\\top \\eta_{xy}^\\top\\, \\phi_y(y)"
+      - type: p
+        text: "Cette fois c'est $\\phi_x = T_x$ qui est figé. La statistique de couplage côté $X$ doit coïncider avec la statistique marginale de $X$."
+      - type: box
+        title: "Contraintes structurelles — résumé"
+        tex: "X \\to Y \\implies \\phi_y = T_y, \\quad \\phi_x \\text{ libre}\\\\[6pt] Y \\to X \\implies \\phi_x = T_x, \\quad \\phi_y \\text{ libre}"
+      - type: p
+        text: "La contrainte est donc toujours du côté de la variable *causée* : sa statistique de couplage est verrouillée sur sa propre statistique marginale. La variable *cause* garde une liberté totale sur $\\phi$ — elle peut présenter un résumé différent de ses données pour le couplage que pour sa loi propre."
+      - type: p
+        text: "Conséquence immédiate : un modèle joint avec $\\phi_x \\neq T_x$ *et* $\\phi_y \\neq T_y$ simultanément ne peut être décomposé sous aucune des deux factorisations tout en maintenant chaque composante dans sa famille exponentielle. C'est un modèle genuinement joint — il ne correspond à aucun mécanisme directionnel propre."
+      - type: callout
+        title: "Ce que la directionalité contraint vraiment."
+        text: "Choisir $X \\to Y$ ne contraint pas $\\eta_{xy}$ lui-même — il reste un paramètre libre. Ce qu'il contraint, c'est $\\phi_y$ : la façon dont $Y$ participe au couplage doit être la même que la façon dont $Y$ se distribue marginalement. Autrement dit, on ne peut pas choisir de ne coupler $X$ qu'à une *fonction partielle* de $Y$ tout en restant dans le cadre directionnel — le couplage porte sur toute la statistique suffisante de $Y$, sans exception."
+      - type: h3
+        text: "Le cas où la distribution peut trahir une direction — LiNGAM"
+      - type: p
+        text: "Il existe un cas remarquable où la distribution observée *peut* révéler une direction causale préférentielle : lorsque les lois marginales appartiennent à des familles distinctes et que les résidus du modèle causal sont non gaussiens."
+      - type: p
+        text: "Le modèle additif à bruit non gaussien postule $Y = f(X) + \\varepsilon$ avec $\\varepsilon \\perp X$. Si $\\varepsilon$ est non gaussien, le modèle inverse $X = g(Y) + \\varepsilon'$ ne peut en général *pas* satisfaire simultanément $\\varepsilon' \\perp Y$ — sauf si la distribution est gaussienne (cas dégénéré où les deux directions sont également valides). Hors du cas gaussien, la direction causale est donc identifiable depuis la seule distribution jointe."
+      - type: p
+        text: "Ce résultat n'est pas une propriété de $\\eta_{xy}$, mais une conséquence des *contraintes de la famille exponentielle* sur la structure des résidus. La gaussienne est le seul membre de la famille exponentielle pour lequel la directionalité causale reste non identifiable depuis la distribution jointe — ce qui explique a posteriori pourquoi les familles exponentielles non gaussiennes (Poisson, Bernoulli, Gamma...) portent une information causale que la gaussienne ne porte pas."
+      - type: h3
+        text: "Exemple — grippe (Bernoulli) × température (Gaussienne)"
+      - type: p
+        text: "Reprenons le patient fébrile du chapitre 4, mais en ajoutant une variable binaire : $X \\in \\{0,1\\}$ indique la présence d'une grippe, et $Y$ est la température mesurée. Les deux familles sont différentes — Bernoulli pour $X$, Gaussienne pour $Y$. Le terme d'interaction est scalaire, $T_x(x) = x$, $T_y(y) = y$."
+      - type: p
+        text: "Avec les paramètres numériques : prévalence de base $\\pi_0 = 0.3$, température saine $\\mu_0 = 36.8^\\circ$C, écart-type instrument $\\sigma = 0.4^\\circ$C, et fièvre $\\delta = 1.7^\\circ$C en cas de grippe. Le paramètre d'interaction vaut :"
+      - type: math
+        label: "Identification de η_xy depuis les paramètres cliniques"
+        tex: "\\eta_{xy} = \\frac{\\delta}{\\sigma^2} = \\frac{1.7}{0.16} \\approx 10.6, \\qquad \\eta_x = \\log\\frac{\\pi_0}{1-\\pi_0} \\approx -0.85, \\qquad \\eta_y = \\frac{\\mu_0}{\\sigma^2} \\approx 230"
+      - type: p
+        text: "Un seul scalaire, $\\eta_{xy} \\approx 10.6$, encode tout le couplage. Les deux conditionnelles se lisent immédiatement depuis le paramètre incliné :"
+      - type: table
+        headers: ["Conditionnelle", "Paramètre incliné", "Forme", "Interprétation"]
+        rows:
+          - ["$p(y \\mid x)$", "$\\eta_y^*(x) = \\eta_y + \\eta_{xy}\\cdot x$", "$\\mathcal{N}(\\mu_0 + \\delta\\cdot x,\\;\\sigma^2)$", "Gaussienne décalée de +1.7°C si grippe"]
+          - ["$p(x \\mid y)$", "$\\eta_x^*(y) = \\eta_x + \\eta_{xy}\\cdot y$", "$\\mathrm{Bernoulli}\\bigl(\\sigma(\\eta_x + \\eta_{xy}\\,y)\\bigr)$", "Régression logistique de la grippe sur la température"]
+      - type: p
+        text: "Les deux conditionnelles coexistent dans la même densité jointe. La première est la narration clinique naturelle — la grippe provoque la fièvre. La seconde est mathématiquement cohérente mais causalement absurde : la température *cause* la grippe. La densité jointe est muette sur laquelle choisir."
+      - type: h3
+        text: "Pourquoi la distribution trahit malgré tout la direction ici"
+      - type: p
+        text: "C'est précisément parce que $X$ est *Bernoulli* — non gaussien — que la direction causale est identifiable. Supposons le modèle génératif $Y = \\mu_0 + \\delta X + \\varepsilon$ avec $\\varepsilon \\sim \\mathcal{N}(0,\\sigma^2)$ et $\\varepsilon \\perp X$. La loi marginale de $Y$ est alors un mélange de deux gaussiennes :"
+      - type: math
+        tex: "p(y) = 0.7\\;\\mathcal{N}(36.8, 0.16) + 0.3\\;\\mathcal{N}(38.5, 0.16)"
+      - type: p
+        text: "Ce mélange bimodal est la signature de la direction $X \\to Y$. Peut-on écrire un modèle inverse $X = g(Y) + \\varepsilon'$ avec $\\varepsilon' \\perp Y$ dans la même forme additive ? Non — car $X$ est binaire : pour tout $g$, le « résidu » $\\varepsilon' = X - g(Y)$ ne peut pas être indépendant de $Y$, puisque la distribution de $Y$ est un mélange dont les composantes sont indexées par $X$ lui-même. Toute information sur $Y$ contient de l'information sur $X$ — le résidu ne peut pas s'en affranchir."
+      - type: p
+        text: "Concrètement : observer $Y = 38.5^{\\circ}$C met à jour la probabilité de grippe via $p(x=1 \\mid y=38.5) = \\sigma(-0.85 + 10.6 \\times 38.5) \\approx 1$. Le signal résiduel de $X$ dans $Y$ reste informatif — il ne disparaît jamais dans un bruit indépendant de $Y$. La direction $X \\to Y$ est la seule pour laquelle un modèle additif à résidus indépendants existe."
+      - type: callout
+        title: "Bilan."
+        text: "La matrice $\\eta_{xy}$ peut encoder l'*intensité* du couplage (via ses valeurs singulières), sa *dimensionnalité effective* (via son rang), et la *géométrie des directions couplées* (via sa SVD). Elle ne peut pas encoder de directionalité causale — la densité jointe est intrinsèquement symétrique. La vraie directionalité requiert soit de choisir explicitement une factorisation $p(y|x)\\,p(x)$, soit de se placer hors du cas gaussien : dans l'exemple grippe × température, la nature discrète de $X$ rend le modèle inverse structurellement impossible, et la direction $X \\to Y$ est identifiable depuis la distribution jointe seule."
+
+  - number: "§ 6"
+    title: "Champs de Markov exponentiels"
+    content:
+      - type: p
+        text: "La construction se généralise naturellement à $p$ variables. La densité jointe d'un *champ de Markov exponentiel* sur $(X_1,\\dots,X_p)$ s'écrit :"
+      - type: math
+        label: "Champ de Markov — forme générale"
+        tex: "p(x_1,\\dots,x_p\\mid\\eta) = \\frac{1}{Z(\\eta)}\\,\\prod_i h_i(x_i)\\, \\exp\\!\\Bigl( \\sum_i \\eta_i^\\top T_i(x_i) + \\sum_{i < j} T_i(x_i)^\\top\\,\\eta_{ij}\\,T_j(x_j) \\Bigr)"
+      - type: p
+        text: "La collection de matrices $(\\eta_{ij})_{i < j}$ définit un graphe non orienté : une arête entre $i$ et $j$ existe si et seulement si $\\eta_{ij} \\neq 0$. Ce graphe encode exactement les indépendances conditionnelles du modèle."
+      - type: box
+        title: "Théorème de Hammersley-Clifford"
+        tex: "X_i \\perp\\!\\!\\!\\perp X_j \\mid \\mathbf{x}_{-ij} \\iff \\eta_{ij} = 0"
+      - type: p
+        text: "Autrement dit, l'*annulation d'un paramètre d'interaction* est équivalente à une indépendance conditionnelle — une correspondance parfaite entre la géométrie algébrique du modèle et sa structure probabiliste."
+      - type: h3
+        text: "Le modèle d'Ising comme cas particulier"
+      - type: p
+        text: "Si chaque $X_i \\in \\{-1,+1\\}$ avec $T_i(x_i) = x_i$, le champ de Markov exponentiel donne exactement le modèle d'Ising de la physique statistique :"
+      - type: math
+        tex: "p(\\mathbf{x}\\mid J, h) \\propto \\exp\\!\\Bigl(\\sum_{i} h_i x_i + \\sum_{i<j} J_{ij}\\,x_i x_j\\Bigr)"
+      - type: p
+        text: "où $h_i = \\eta_i$ est le champ local et $J_{ij} = \\eta_{ij}$ est le couplage. La physique des transitions de phase — ferromagnétisme, liquide-gaz — est encodée dans le seul schéma de non-zéros de $(J_{ij})$."
+      - type: callout
+        title: "La structure de la famille suffit à tout décrire."
+        text: "Les indépendances conditionnelles, la structure graphique, la séparabilité du modèle : tout cela se lit dans le schéma de zéros du tenseur d'interaction $(\\eta_{ij})$. On n'a pas besoin de calculer des probabilités — le paramètre seul révèle la géométrie des dépendances."
+
+  - number: "§ 7"
+    title: "Mise à jour conjuguée — les statistiques croisées s'accumulent"
+    content:
+      - type: p
+        text: "La beauté du cadre conjugué s'étend intact au cas joint. Un échantillon de $n$ paires $(x_i, y_i)$ forme une famille exponentielle avec statistique suffisante jointe. La même règle de mise à jour en deux additions s'applique — avec un bloc supplémentaire pour le terme croisé :"
+      - type: box
+        title: "Règle de mise à jour — statistiques croisées"
+        tex: "\\lambda_n = \\begin{pmatrix} \\lambda_0^{(x)} + \\sum_i T_x(x_i) \\\\[4pt] \\lambda_0^{(y)} + \\sum_i T_y(y_i) \\\\[4pt] \\lambda_0^{(xy)} + \\sum_i T_x(x_i)\\otimes T_y(y_i) \\end{pmatrix}, \\qquad \\nu_n = \\nu_0 + n"
+      - type: p
+        text: "Le bloc croisé $\\lambda_n^{(xy)}$ accumule les *moments croisés empiriques* $\\sum_i T_x(x_i) \\otimes T_y(y_i)$. Pour les statistiques linéaires ($T_x(x) = x$, $T_y(y) = y$), c'est la somme $\\sum_i x_i y_i$ — directement liée à la covariance empirique."
+      - type: h3
+        text: "Interprétation des trois blocs de λ"
+      - type: table
+        headers: ["Bloc", "Ce qu'il accumule", "Information portée"]
+        rows:
+          - ["$\\lambda^{(x)}$", "$\\sum_i T_x(x_i)$", "Comportement marginal de $X$"]
+          - ["$\\lambda^{(y)}$", "$\\sum_i T_y(y_i)$", "Comportement marginal de $Y$"]
+          - ["$\\lambda^{(xy)}$", "$\\sum_i T_x(x_i)\\otimes T_y(y_i)$", "Dépendance, corrélation, couplage"]
+      - type: p
+        text: "La mise à jour de $\\eta_{xy}$ a posteriori dépend uniquement de $\\lambda^{(xy)}$ et de $\\nu_n$ — exactement comme le sous-chapitre 4.4 pour les paramètres marginaux. La *structure algébrique est identique* ; seule la dimension du vecteur $\\lambda$ a grandi."
+      - type: callout
+        title: "Le résultat le plus profond."
+        text: "Toute l'information sur l'interaction entre $X$ et $Y$ contenue dans $n$ observations est entièrement capturée par le vecteur de dimension fixe $\\lambda^{(xy)} = \\sum_i T_x(x_i) \\otimes T_y(y_i)$. C'est à nouveau le théorème de suffisance — appliqué au couple. Deux jeux de données de tailles différentes donnant le même moment croisé sont *équivalents* pour inférer $\\eta_{xy}$."
+
+  - number: "§ 8"
+    title: "Simulation interactive"
+    content:
+      - type: p
+        text: "La densité jointe simulée ci-dessous est de la forme $\\log p(x,y) = \\eta_x T_x(x) - \\tfrac{1}{2}x^2 - \\tfrac{1}{2}y^2 + \\eta_{xy}\\,T_x(x)\\,T_y(y)$. L'ancrage quadratique assure la normalisabilité pour $|\\eta_{xy}| < 1$ (cas linéaire) ou pour tout $\\eta_{xy}$ (statistiques bornées comme $\\mathrm{sgn}$)."
+      - type: h3
+        text: "Ce que la visualisation révèle"
+      - type: p
+        text: "Avec $T_x = x$ et $T_y = y$, la *courbe bleue* trace le mode conditionnel $y^*(x) = \\eta_{xy}\\cdot x$ — une droite dont la pente est exactement le paramètre d'interaction. C'est la régression de $Y$ sur $T_x(X)$."
+      - type: p
+        text: "En passant à $T_x = |x|$, la courbe devient un V : le mode conditionnel est symétrique, la dépendance ne distingue pas $x > 0$ de $x < 0$. Avec $T_x = \\mathrm{sgn}(x)$, la courbe devient une marche d'escalier : le signe seul de $X$ détermine la loi conditionnelle de $Y$."
+      - type: p
+        text: "Dans chaque cas, le panneau de droite montre $p(y\\mid x = x_0)$ : la même formule $\\eta_y^*(x_0) = \\eta_{xy}\\cdot T_x(x_0)$ est à l'œuvre, la forme de $T_x$ changeant uniquement la façon dont $x_0$ est résumé."
+      - type: widget
+        name: InteractionWidget
+      - type: callout
+        title: "Lecture de la simulation."
+        text: "Quand $\\eta_{xy} = 0$, les contours de la densité jointe sont circulaires et le panneau conditionnel est identique pour toute valeur de $x_0$ — indépendance parfaite. En augmentant $|\\eta_{xy}|$, les contours s'inclient et le mode conditionnel se déplace. Changer la statistique suffisante change la *géométrie* de cette inclinaison sans modifier la formule abstraite du couplage."
+
+  - number: "Synthèse"
+    title: "Ce que la structure des interactions révèle"
+    content:
+      - type: table
+        headers: ["Objet", "Rôle", "Propriété clé"]
+        rows:
+          - ["$T_x(x) \\otimes T_y(y)$", "Statistique suffisante croisée", "Capture toute l'information sur $\\eta_{xy}$"]
+          - ["$\\eta_{xy}$", "Paramètre d'interaction", "$= 0$ iff indépendance conditionnelle"]
+          - ["$\\eta_y^*(x) = \\eta_y + \\eta_{xy}^\\top T_x(x)$", "Paramètre incliné", "Conditionnel : même famille, param. décalé"]
+          - ["$A_y(\\eta_y^*(x))$", "Log-partition inclinée", "Marginaliser = intégrer ce terme non linéaire"]
+          - ["$\\lambda^{(xy)} = \\sum_i T_x(x_i)\\otimes T_y(y_i)$", "Mémoire des interactions", "Suffit pour mettre à jour $\\eta_{xy}$"]
+          - ["Schéma de zéros de $(\\eta_{ij})$", "Graphe des dépendances", "Hammersley-Clifford : graphe = indépendances"]
+      - type: callout
+        title: "Le fil conducteur."
+        text: "Que ce soient deux variables ou $p$ variables, qu'elles appartiennent à la même famille ou à des familles distinctes : la famille exponentielle jointe est toujours une famille exponentielle, et sa mise à jour est toujours deux additions. L'interaction entre variables n'est pas une complication — c'est juste une dimension supplémentaire dans l'espace des statistiques suffisantes."
