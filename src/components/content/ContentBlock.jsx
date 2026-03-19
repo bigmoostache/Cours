@@ -31,7 +31,7 @@ export default function ContentBlock({ block }) {
     case "callout":
       return (
         <div className="callout" style={block.style}>
-          <strong>{block.title} </strong>
+          <strong>{parseInlineContent(block.title)} </strong>
           {parseInlineContent(block.text)}
         </div>
       );
