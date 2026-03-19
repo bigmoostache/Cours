@@ -4,6 +4,7 @@ import "./styles/chapter.css";
 
 import Sidebar from "./components/layout/Sidebar";
 import ChapterRenderer from "./components/content/ChapterRenderer";
+import GraphSimulator from "./components/widgets/GraphSimulator";
 
 import chapitre1 from "./content/chapitre_1.yaml";
 import chapitre4 from "./content/chapitre_4.yaml";
@@ -62,6 +63,18 @@ export default function App() {
           <Route path="/chapitre-5" element={<ChapterRenderer data={chapitre5} />} />
           <Route path="/chapitre-6" element={<ChapterRenderer data={chapitre6} />} />
           <Route path="/chapitre-7" element={<ChapterRenderer data={chapitre7} />} />
+          <Route path="/simulation" element={
+            <div className="page" style={{ maxWidth: 1200 }}>
+              <div className="chapter-header">
+                <div className="chapter-label">Simulation Interactive</div>
+                <h1 className="chapter-title">Graphe d'Inférence<br />Bayésienne</h1>
+                <p className="chapter-subtitle">
+                  Construisez un graphe de variables, définissez les priors (NIG ou Dirichlet), ajoutez des observations, et lancez l'algorithme EM.
+                </p>
+              </div>
+              <GraphSimulator />
+            </div>
+          } />
         </Routes>
       </div>
     </HashRouter>

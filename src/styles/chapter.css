@@ -867,6 +867,246 @@ canvas.posterior-canvas {
   padding: 32px 16px;
 }
 
+/* ─── Graph Simulator ────────────────────────────────────────────── */
+
+.graph-simulator {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.sim-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.sim-toolbar button {
+  background: var(--cream-dark);
+  border: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--ink-light);
+  transition: all 0.15s;
+}
+
+.sim-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+.sim-toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.sim-btn-active {
+  background: var(--accent) !important;
+  color: white !important;
+  border-color: var(--accent) !important;
+}
+
+.sim-btn-play {
+  background: var(--ink) !important;
+  color: var(--cream) !important;
+  border-color: var(--ink) !important;
+}
+.sim-btn-play:hover { background: var(--accent) !important; border-color: var(--accent) !important; }
+
+.sim-toolbar-sep {
+  flex: 1;
+}
+
+.sim-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.sim-main {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.sim-graph-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.sim-side {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sim-panel {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 14px;
+  font-size: 14px;
+}
+
+.sim-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.sim-panel-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.sim-panel-delete {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+}
+.sim-panel-delete:hover { color: var(--accent); }
+
+.sim-field {
+  margin-bottom: 10px;
+}
+
+.sim-field label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.sim-field input,
+.sim-field select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--cream);
+}
+
+.sim-field input:focus,
+.sim-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.sim-interp {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  padding: 4px 8px;
+  background: rgba(139, 46, 18, 0.04);
+  border-radius: 3px;
+  margin-bottom: 10px;
+}
+
+.sim-obs-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cream-dark);
+}
+
+.sim-obs-section > label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.sim-obs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+  min-height: 24px;
+}
+
+.sim-obs-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--cream-dark);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-light);
+}
+
+.sim-obs-tag button {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+  line-height: 1;
+}
+.sim-obs-tag button:hover { color: var(--accent); }
+
+.sim-obs-add {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sim-obs-add button {
+  background: var(--cream-dark);
+  border: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--ink-light);
+  transition: all 0.15s;
+}
+.sim-obs-add button:hover { border-color: var(--accent); color: var(--accent); }
+
+.sim-hint {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  text-align: center;
+  padding: 24px 14px;
+}
+
+.sim-em-results {
+  border-color: var(--accent);
+  border-left-width: 3px;
+}
+
+.sim-em-node {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-light);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.sim-em-node strong {
+  color: var(--ink);
+}
+
 /* ─── Responsive ─────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {

@@ -1,0 +1,515 @@
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import * as d3 from "d3";
+
+// ── Helpers ──────────────────────────────────────────────────────────
+
+let _nextId = 1;
+const uid = () => `n${_nextId++}`;
+const eid = (a, b) => [a, b].sort().join("--");
+
+function makeNode(x, y, family = "nig") {
+  const id = uid();
+  if (family === "nig") {
+    // λ₀ = (ν₀·μ₀, -ν₀/(2σ₀²))  with μ₀=0, σ₀²=1, ν₀=1
+    return { id, x, y, family, lambda: [0, -0.5], nu: 1, obs: [] };
+  }
+  // dirichlet K=3: λ₀ = (α₁-1, α₂-1, α₃-1) with αₖ=2 → λ₀=(1,1,1), ν₀ = sum αₖ = 6
+  return { id, x, y, family: "dir", lambda: [1, 1, 1], nu: 6, obs: [] };
+}
+
+function makeEdge(src, tgt) {
+  const id = eid(src, tgt);
+  // λ₀_xy = zero matrix, ν₀_xy = 0 (no prior coupling)
+  return { id, source: src, target: tgt, lambda: 0, nu: 0 };
+}
+
+// ── Clinical interpretation for display ──────────────────────────────
+
+function nigClinical(lambda, nu) {
+  if (nu <= 0) return { mu: 0, sigma2: 1 };
+  const mu = lambda[0] / nu;
+  const sigma2 = nu > 0 ? -1 / (2 * lambda[1] / nu) : 1;
+  return { mu: isFinite(mu) ? mu : 0, sigma2: isFinite(sigma2) && sigma2 > 0 ? sigma2 : 1 };
+}
+
+function dirAlphas(lambda) {
+  return lambda.map(l => l + 1);
+}
+
+// ── EM Algorithm ─────────────────────────────────────────────────────
+
+function runEM(nodes, edges, maxIter = 50, tol = 1e-6) {
+  // Build adjacency
+  const adj = {};
+  nodes.forEach(n => { adj[n.id] = []; });
+  edges.forEach(e => {
+    adj[e.source].push({ neighbor: e.target, edge: e });
+    adj[e.target].push({ neighbor: e.source, edge: e });
+  });
+
+  // Initialize η from prior: η = λ/ν (moment parameters)
+  const eta = {};
+  nodes.forEach(n => {
+    if (n.nu > 0) {
+      eta[n.id] = n.lambda.map(l => l / n.nu);
+    } else {
+      eta[n.id] = n.family === "nig" ? [0, -0.5] : [0, 0, 0];
+    }
+  });
+
+  const history = [JSON.parse(JSON.stringify(eta))];
+
+  for (let it = 0; it < maxIter; it++) {
+    const prevEta = JSON.parse(JSON.stringify(eta));
+
+    nodes.forEach(node => {
+      // Accumulate: λ_n = λ₀ + Σ T(xᵢ) + Σ_neighbors tilt
+      const lambda_n = [...node.lambda];
+      let nu_n = node.nu;
+
+      // Add observations
+      node.obs.forEach(x => {
+        if (node.family === "nig") {
+          lambda_n[0] += x;
+          lambda_n[1] += x * x;
+          // Actually for NIG: T(x) = (x, x²) but λ accumulates T directly
+          // Wait — λ_n = λ₀ + Σ T(xᵢ), and for Gaussian T(x) = (x, x²)
+          // But λ₀ for NIG is (ν₀μ₀, -ν₀/(2σ₀²))
+          // The update is: λ_n = λ₀ + (Σxᵢ, Σxᵢ²)... hmm
+          // Actually let me reconsider. In the conjugate framework:
+          // λ_n = λ₀ + Σ T(xᵢ), ν_n = ν₀ + n
+          // For Gaussian with T(x)=(x, x²): λ₀=(ν₀μ₀, -ν₀/(2σ₀²))
+          // Actually λ₁ accumulates Σxᵢ and λ₂ accumulates -Σxᵢ²/2? No.
+          // Let's be clean: T(x) = (x, -x²/2) so that η=(μ/σ², 1/σ²)
+          // Then λ_n = λ₀ + Σ(xᵢ, -xᵢ²/2)
+        } else {
+          // Categorical: x is category index 0..K-1
+          // T(x) = one-hot (but we accumulate log-counts for Dirichlet)
+          // Actually for Dir-Cat conjugation: λ_n = λ₀ + (n₁, n₂, ..., nₖ)
+          if (x >= 0 && x < lambda_n.length) {
+            lambda_n[x] += 1;
+          }
+        }
+        nu_n += 1;
+      });
+
+      // Add neighbor influences (mean-field EM approximation)
+      adj[node.id].forEach(({ neighbor, edge }) => {
+        if (edge.nu > 0) {
+          const neighborEta = eta[neighbor];
+          // Tilt: add η_xy * E[T(neighbor)] contribution
+          // Simplified: just blend toward neighbor's current estimate
+          const weight = edge.nu / (nu_n + edge.nu + 1);
+          for (let k = 0; k < lambda_n.length; k++) {
+            if (k < neighborEta.length) {
+              lambda_n[k] += weight * neighborEta[k];
+            }
+          }
+          nu_n += edge.nu;
+        }
+      });
+
+      // Update η = λ_n / ν_n
+      if (nu_n > 0) {
+        eta[node.id] = lambda_n.map(l => l / nu_n);
+      }
+    });
+
+    history.push(JSON.parse(JSON.stringify(eta)));
+
+    // Check convergence
+    let maxDiff = 0;
+    nodes.forEach(n => {
+      for (let k = 0; k < eta[n.id].length; k++) {
+        maxDiff = Math.max(maxDiff, Math.abs(eta[n.id][k] - prevEta[n.id][k]));
+      }
+    });
+    if (maxDiff < tol) break;
+  }
+
+  return { eta, history };
+}
+
+// ── Graph Visualization (D3 Force) ──────────────────────────────────
+
+function GraphCanvas({ nodes, edges, selected, onSelect, onMove }) {
+  const svgRef = useRef(null);
+  const simRef = useRef(null);
+  const width = 600, height = 400;
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    // Defs for arrowheads
+    svg.append("defs").append("marker")
+      .attr("id", "arrow").attr("viewBox", "0 -5 10 10")
+      .attr("refX", 28).attr("refY", 0)
+      .attr("markerWidth", 6).attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#c8bfb0");
+
+    const g = svg.append("g");
+
+    // Zoom
+    svg.call(d3.zoom().scaleExtent([0.3, 3]).on("zoom", (e) => {
+      g.attr("transform", e.transform);
+    }));
+
+    // Links
+    const link = g.selectAll(".graph-link")
+      .data(edges, d => d.id)
+      .join("line")
+      .attr("class", "graph-link")
+      .attr("stroke", d => d.id === selected ? "#8b2e12" : "#c8bfb0")
+      .attr("stroke-width", d => d.id === selected ? 3 : 1.5)
+      .on("click", (e, d) => { e.stopPropagation(); onSelect(d.id, "edge"); });
+
+    // Node groups
+    const node = g.selectAll(".graph-node")
+      .data(nodes, d => d.id)
+      .join("g")
+      .attr("class", "graph-node")
+      .attr("cursor", "grab")
+      .on("click", (e, d) => { e.stopPropagation(); onSelect(d.id, "node"); });
+
+    // Circle
+    node.append("circle")
+      .attr("r", 22)
+      .attr("fill", d => d.family === "nig" ? "#fdf5f2" : "#f2f5fd")
+      .attr("stroke", d => d.id === selected ? "#8b2e12" : "#4a4540")
+      .attr("stroke-width", d => d.id === selected ? 3 : 1.5);
+
+    // Label
+    node.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.35em")
+      .attr("font-family", "'JetBrains Mono', monospace")
+      .attr("font-size", "10px")
+      .attr("fill", "#1a1714")
+      .text(d => d.family === "nig" ? "𝒩" : "Dir");
+
+    // Obs count
+    node.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "32")
+      .attr("font-family", "'JetBrains Mono', monospace")
+      .attr("font-size", "9px")
+      .attr("fill", "#8a837a")
+      .text(d => d.obs.length > 0 ? `n=${d.obs.length}` : "");
+
+    // Click background to deselect
+    svg.on("click", () => onSelect(null, null));
+
+    // Force simulation
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    const simEdges = edges.map(e => ({
+      source: nodeMap.get(e.source),
+      target: nodeMap.get(e.target),
+      id: e.id,
+    })).filter(e => e.source && e.target);
+
+    const sim = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(simEdges).id(d => d.id).distance(120))
+      .force("charge", d3.forceManyBody().strength(-200))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collision", d3.forceCollide(35))
+      .on("tick", () => {
+        link
+          .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+        node.attr("transform", d => `translate(${d.x},${d.y})`);
+      });
+
+    simRef.current = sim;
+
+    // Drag
+    const drag = d3.drag()
+      .on("start", (e, d) => {
+        if (!e.active) sim.alphaTarget(0.3).restart();
+        d.fx = d.x; d.fy = d.y;
+      })
+      .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on("end", (e, d) => {
+        if (!e.active) sim.alphaTarget(0);
+        d.fx = null; d.fy = null;
+        onMove(d.id, d.x, d.y);
+      });
+    node.call(drag);
+
+    return () => { sim.stop(); };
+  }, [nodes, edges, selected]);
+
+  return (
+    <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`}
+      style={{ width: "100%", height: height, background: "white", border: "1px solid #c8bfb0", borderRadius: 4 }} />
+  );
+}
+
+// ── Config Panel ─────────────────────────────────────────────────────
+
+function NodePanel({ node, onChange, onDelete, allNodes }) {
+  const { mu, sigma2 } = node.family === "nig" ? nigClinical(node.lambda, node.nu) : { mu: 0, sigma2: 0 };
+  const alphas = node.family === "dir" ? dirAlphas(node.lambda) : [];
+
+  return (
+    <div className="sim-panel">
+      <div className="sim-panel-header">
+        <span className="sim-panel-title">
+          {node.family === "nig" ? "𝒩 Gaussienne (NIG)" : "Dir Dirichlet"}
+        </span>
+        <button className="sim-panel-delete" onClick={() => onDelete(node.id)}>✕</button>
+      </div>
+
+      <div className="sim-field">
+        <label>Famille</label>
+        <select value={node.family} onChange={e => onChange({ ...node, family: e.target.value, lambda: e.target.value === "nig" ? [0, -0.5] : [1, 1, 1], nu: e.target.value === "nig" ? 1 : 6, obs: [] })}>
+          <option value="nig">Gaussienne (NIG)</option>
+          <option value="dir">Dirichlet</option>
+        </select>
+      </div>
+
+      <div className="sim-field">
+        <label>ν₀ (pseudo-obs)</label>
+        <input type="number" step="0.5" min="0.1" value={node.nu}
+          onChange={e => onChange({ ...node, nu: +e.target.value })} />
+      </div>
+
+      {node.family === "nig" && (
+        <>
+          <div className="sim-field">
+            <label>λ₀₁ (accum. Σxᵢ)</label>
+            <input type="number" step="0.5" value={node.lambda[0]}
+              onChange={e => { const l = [...node.lambda]; l[0] = +e.target.value; onChange({ ...node, lambda: l }); }} />
+          </div>
+          <div className="sim-field">
+            <label>λ₀₂ (accum. -Σxᵢ²/2)</label>
+            <input type="number" step="0.1" value={node.lambda[1]}
+              onChange={e => { const l = [...node.lambda]; l[1] = +e.target.value; onChange({ ...node, lambda: l }); }} />
+          </div>
+          <div className="sim-interp">
+            ≡ μ₀ = {mu.toFixed(2)}, σ₀² = {sigma2.toFixed(2)}
+          </div>
+        </>
+      )}
+
+      {node.family === "dir" && node.lambda.map((l, k) => (
+        <div className="sim-field" key={k}>
+          <label>λ₀,{k + 1} (α{k + 1} = {(l + 1).toFixed(1)})</label>
+          <input type="number" step="0.5" min="-0.99" value={l}
+            onChange={e => { const la = [...node.lambda]; la[k] = +e.target.value; onChange({ ...node, lambda: la }); }} />
+        </div>
+      ))}
+
+      <div className="sim-obs-section">
+        <label>Observations ({node.obs.length})</label>
+        <div className="sim-obs-list">
+          {node.obs.map((o, i) => (
+            <span key={i} className="sim-obs-tag">
+              {node.family === "nig" ? o.toFixed(1) : `cat ${o + 1}`}
+              <button onClick={() => { const obs = [...node.obs]; obs.splice(i, 1); onChange({ ...node, obs }); }}>×</button>
+            </span>
+          ))}
+        </div>
+        <div className="sim-obs-add">
+          {node.family === "nig" ? (
+            <button onClick={() => {
+              const v = parseFloat(prompt("Valeur observée:", "0"));
+              if (!isNaN(v)) onChange({ ...node, obs: [...node.obs, v] });
+            }}>+ Ajouter obs</button>
+          ) : (
+            node.lambda.map((_, k) => (
+              <button key={k} onClick={() => onChange({ ...node, obs: [...node.obs, k] })}>
+                + Cat {k + 1}
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EdgePanel({ edge, onChange, onDelete, nodes }) {
+  const src = nodes.find(n => n.id === edge.source);
+  const tgt = nodes.find(n => n.id === edge.target);
+  return (
+    <div className="sim-panel">
+      <div className="sim-panel-header">
+        <span className="sim-panel-title">
+          Couplage {src?.id} ↔ {tgt?.id}
+        </span>
+        <button className="sim-panel-delete" onClick={() => onDelete(edge.id)}>✕</button>
+      </div>
+      <div className="sim-field">
+        <label>ν₀_xy (force du couplage)</label>
+        <input type="number" step="0.5" min="0" value={edge.nu}
+          onChange={e => onChange({ ...edge, nu: +e.target.value })} />
+      </div>
+      <div className="sim-field">
+        <label>λ₀_xy (bias d'interaction)</label>
+        <input type="number" step="0.1" value={edge.lambda}
+          onChange={e => onChange({ ...edge, lambda: +e.target.value })} />
+      </div>
+    </div>
+  );
+}
+
+// ── EM Results Panel ─────────────────────────────────────────────────
+
+function EMResults({ result, nodes }) {
+  if (!result) return null;
+  return (
+    <div className="sim-panel sim-em-results">
+      <div className="sim-panel-header">
+        <span className="sim-panel-title">Résultat EM ({result.history.length - 1} itérations)</span>
+      </div>
+      {nodes.map(n => {
+        const eta = result.eta[n.id];
+        if (!eta) return null;
+        if (n.family === "nig") {
+          const mu = eta[0];
+          const sigma2 = eta[1] < 0 ? -1 / (2 * eta[1]) : NaN;
+          return (
+            <div key={n.id} className="sim-em-node">
+              <strong>{n.id}</strong> (𝒩):
+              μ̂ = {isFinite(mu) ? mu.toFixed(3) : "—"},
+              σ̂² = {isFinite(sigma2) ? sigma2.toFixed(3) : "—"}
+            </div>
+          );
+        } else {
+          const alphas = eta.map(e => e + 1);
+          const sum = alphas.reduce((a, b) => a + b, 0);
+          return (
+            <div key={n.id} className="sim-em-node">
+              <strong>{n.id}</strong> (Dir):
+              π̂ = ({alphas.map(a => (a / sum).toFixed(2)).join(", ")})
+            </div>
+          );
+        }
+      })}
+    </div>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────────────
+
+export default function GraphSimulator() {
+  const [nodes, setNodes] = useState(() => {
+    const a = makeNode(200, 200, "nig");
+    const b = makeNode(400, 200, "nig");
+    return [a, b];
+  });
+  const [edges, setEdges] = useState(() => {
+    return [makeEdge(nodes[0]?.id, nodes[1]?.id)];
+  });
+  const [selected, setSelected] = useState(null);
+  const [selType, setSelType] = useState(null);
+  const [emResult, setEmResult] = useState(null);
+  const [linking, setLinking] = useState(null); // id of first node when adding edge
+
+  const handleSelect = useCallback((id, type) => {
+    if (linking && type === "node" && id !== linking) {
+      // Complete edge creation
+      const existingEdge = edges.find(e => e.id === eid(linking, id));
+      if (!existingEdge) {
+        setEdges(prev => [...prev, makeEdge(linking, id)]);
+      }
+      setLinking(null);
+      return;
+    }
+    setSelected(id);
+    setSelType(type);
+    setLinking(null);
+  }, [linking, edges]);
+
+  const handleMove = useCallback((id, x, y) => {
+    setNodes(prev => prev.map(n => n.id === id ? { ...n, x, y } : n));
+  }, []);
+
+  const addNode = (family) => {
+    const n = makeNode(300 + Math.random() * 100, 200 + Math.random() * 100, family);
+    setNodes(prev => [...prev, n]);
+    setSelected(n.id);
+    setSelType("node");
+  };
+
+  const deleteNode = (id) => {
+    setNodes(prev => prev.filter(n => n.id !== id));
+    setEdges(prev => prev.filter(e => e.source !== id && e.target !== id));
+    setSelected(null);
+    setSelType(null);
+  };
+
+  const deleteEdge = (id) => {
+    setEdges(prev => prev.filter(e => e.id !== id));
+    setSelected(null);
+    setSelType(null);
+  };
+
+  const updateNode = (updated) => {
+    setNodes(prev => prev.map(n => n.id === updated.id ? updated : n));
+  };
+
+  const updateEdge = (updated) => {
+    setEdges(prev => prev.map(e => e.id === updated.id ? updated : e));
+  };
+
+  const runEMSim = () => {
+    const result = runEM(nodes, edges);
+    setEmResult(result);
+  };
+
+  const selectedNode = selType === "node" ? nodes.find(n => n.id === selected) : null;
+  const selectedEdge = selType === "edge" ? edges.find(e => e.id === selected) : null;
+
+  return (
+    <div className="graph-simulator">
+      {/* Toolbar */}
+      <div className="sim-toolbar">
+        <button onClick={() => addNode("nig")}>+ 𝒩 Gaussienne</button>
+        <button onClick={() => addNode("dir")}>+ Dir Dirichlet</button>
+        <button className={linking ? "sim-btn-active" : ""}
+          onClick={() => setLinking(linking ? null : selected)}
+          disabled={!selected || selType !== "node"}>
+          {linking ? "Cliquer le 2e nœud..." : "⟷ Lier"}
+        </button>
+        <div className="sim-toolbar-sep" />
+        <button className="sim-btn-play" onClick={runEMSim}
+          disabled={nodes.length === 0}>
+          ▶ EM
+        </button>
+        <span className="sim-status">
+          {nodes.length} nœud{nodes.length !== 1 ? "s" : ""}, {edges.length} lien{edges.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {/* Main area */}
+      <div className="sim-main">
+        <div className="sim-graph-area">
+          <GraphCanvas nodes={nodes} edges={edges} selected={selected}
+            onSelect={handleSelect} onMove={handleMove} />
+        </div>
+
+        <div className="sim-side">
+          {selectedNode && (
+            <NodePanel node={selectedNode} onChange={updateNode}
+              onDelete={deleteNode} allNodes={nodes} />
+          )}
+          {selectedEdge && (
+            <EdgePanel edge={selectedEdge} onChange={updateEdge}
+              onDelete={deleteEdge} nodes={nodes} />
+          )}
+          {!selectedNode && !selectedEdge && (
+            <div className="sim-panel sim-hint">
+              Cliquez un nœud ou un lien pour le configurer.
+            </div>
+          )}
+          <EMResults result={emResult} nodes={nodes} />
+        </div>
+      </div>
+    </div>
+  );
+}
