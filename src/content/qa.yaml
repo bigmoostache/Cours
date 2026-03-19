@@ -123,3 +123,12 @@ sections:
       - type: callout
         title: "Quand le raccourci ne marche pas."
         text: "Si $Y$ a plusieurs voisins dans le graphe (e.g. un instrument qui mesure une combinaison de variables), la marginalisation de $Y$ fait apparaître la log-partition $A_Y(\\eta_Y^*)$ au paramètre incliné — une fonction non linéaire (Ch. 5, §4). On sort de la famille exponentielle et il faut garder $Y$ comme nœud séparé."
+
+      - type: h3
+        text: "Note — $n$ nœuds séparés vs. un nœud unique avec $n$ observations"
+      - type: p
+        text: "Faire $n$ nœuds $Y_1, \\dots, Y_n$ couplés à $X$ avec la même matrice $\\eta_{XY}$, chacun portant une observation, est *équivalent* à un unique nœud $Y$ portant les $n$ observations. C'est une conséquence directe de la suffisance (Ch. 4, §2) : les $n$ nœuds accumulent les mêmes statistiques $\\sum y_j$ et $\\sum y_j^2$ que le nœud unique. Du point de vue de $X$, les deux configurations sont indiscernables."
+      - type: p
+        text: "L'équivalence se brise dès que les forces de couplage diffèrent : $\\eta_{XY_j} \\neq \\eta_{XY_k}$. Un nœud unique ne peut pas pondérer ses observations selon leur fiabilité — la règle $\\lambda_n = \\lambda_0 + \\sum T(y_j)$ donne un poids unitaire à chaque observation. Des nœuds séparés avec des $\\eta_{XY_j}$ distincts résolvent ce problème : chaque instrument contribue proportionnellement à sa précision."
+      - type: p
+        text: "En pratique, pour un instrument donné, la précision $\\varepsilon^2$ est connue a priori (spécification constructeur, calibration). Le couplage $\\eta_{XY} = \\mathrm{diag}(1/\\varepsilon^2, 0)$ est donc fixé *avant* d'observer quoi que ce soit. Toutes les mesures de cet instrument ont la même fiabilité : un nœud unique est plus cohérent — il reflète le fait qu'il y a *un* instrument, pas $n$ instruments distincts. On réserve les nœuds multiples au cas où plusieurs instruments de précisions différentes mesurent la même variable latente $X$."
