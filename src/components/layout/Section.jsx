@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { parseInlineContent } from "../content/parseInline";
 
 export default function Section({ number, title, id, children }) {
   const ref = useRef(null);
@@ -14,7 +15,7 @@ export default function Section({ number, title, id, children }) {
   return (
     <div ref={ref} id={id} className={`section ${visible ? "visible" : ""}`}>
       <div className="section-number">{number}</div>
-      <h2>{title}</h2>
+      <h2>{parseInlineContent(title)}</h2>
       {children}
     </div>
   );
