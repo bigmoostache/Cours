@@ -26,12 +26,20 @@ sections:
       - type: math
         tex: "p(y \\mid x) = \\frac{1}{\\sqrt{2\\pi\\varepsilon^2}}\\,\\exp\\!\\Bigl(\\frac{x}{\\varepsilon^2}\\,y - \\frac{1}{2\\varepsilon^2}\\,y^2 - \\frac{x^2}{2\\varepsilon^2} - \\frac{1}{2}\\log\\varepsilon^2\\Bigr)"
       - type: p
-        text: "On reconnaît la forme jointe du Chapitre 5, §2. Le terme $\\frac{x}{\\varepsilon^2}\\,y$ couple les statistiques suffisantes $T_X(x) = x$ et $T_Y(y) = y$ avec un paramètre d'interaction :"
-      - type: box
-        title: "Paramètre d'interaction instrument"
-        tex: "\\eta_{XY} = \\frac{1}{\\varepsilon^2}"
+        text: "On reconnaît la forme jointe du Chapitre 5, §2. Les statistiques suffisantes gaussiennes sont bidimensionnelles : $T_X(x) = (x,\\, x^2)$ et $T_Y(y) = (y,\\, y^2)$. Le terme d'interaction $T_X(x)^\\top \\eta_{XY}\\, T_Y(y)$ est donc gouverné par une matrice $\\eta_{XY} \\in \\mathbb{R}^{2 \\times 2}$."
       - type: p
-        text: "C'est exactement la structure du Chapitre 5 : $\\eta_Y^*(x) = \\eta_Y + \\eta_{XY} \\cdot T_X(x) = \\eta_Y + \\frac{x}{\\varepsilon^2}$. La conditionnelle $p(y \\mid x)$ reste dans la famille gaussienne, avec un paramètre naturel incliné par $x$ — le théorème fondamental (Ch. 5, §3) s'applique."
+        text: "Le seul terme croisé dans l'exposant est $\\frac{x}{\\varepsilon^2}\\,y = \\frac{1}{\\varepsilon^2}\\, T_X^{(1)}(x)\\, T_Y^{(1)}(y)$. Il n'y a aucun terme en $x^2 y$, $x y^2$ ou $x^2 y^2$. La matrice d'interaction a donc trois zéros :"
+      - type: box
+        title: "Matrice d'interaction instrument"
+        tex: "\\eta_{XY} = \\begin{pmatrix} 1/\\varepsilon^2 & 0 \\\\ 0 & 0 \\end{pmatrix}"
+      - type: p
+        text: "Seul le bloc $(1,1)$ est non nul : le couplage passe exclusivement par les premières composantes $T^{(1)}_X(x) = x$ et $T^{(1)}_Y(y) = y$ — les positions. Les secondes composantes $(x^2, y^2)$ ne sont pas couplées : l'instrument lie les *moyennes* de $X$ et $Y$, pas leurs *variances*."
+      - type: p
+        text: "Le paramètre incliné (Ch. 5, §3) se calcule alors :"
+      - type: math
+        tex: "\\eta_Y^*(x) = \\eta_Y + \\eta_{XY}^\\top\\, T_X(x) = \\begin{pmatrix} \\eta_Y^{(1)} \\\\ \\eta_Y^{(2)} \\end{pmatrix} + \\begin{pmatrix} 1/\\varepsilon^2 & 0 \\\\ 0 & 0 \\end{pmatrix} \\begin{pmatrix} x \\\\ x^2 \\end{pmatrix} = \\begin{pmatrix} \\eta_Y^{(1)} + x/\\varepsilon^2 \\\\ \\eta_Y^{(2)} \\end{pmatrix}"
+      - type: p
+        text: "La première composante du paramètre naturel de $Y$ (la position) est inclinée par $x/\\varepsilon^2$. La seconde composante (la précision) reste intacte — $\\varepsilon^2$ est connu, le couplage ne l'affecte pas. La conditionnelle $p(y \\mid x)$ reste dans la famille gaussienne : le théorème fondamental (Ch. 5, §3) s'applique."
 
       - type: h3
         text: "Construction du nœud $Y$ dans le graphe"
@@ -43,7 +51,7 @@ sections:
           - ["$X$", "$p(\\eta_X) \\propto \\exp(\\eta_X^\\top \\lambda_0^X - \\nu_0^X A(\\eta_X))$", "$T_X(x) = (x,\\, x^2)$", "Variable latente"]
           - ["$Y$", "$p(\\eta_Y) \\propto \\exp(\\eta_Y^\\top \\lambda_0^Y - \\nu_0^Y A(\\eta_Y))$", "$T_Y(y) = (y,\\, y^2)$", "Mesure instrument"]
       - type: p
-        text: "Le lien $X \\leftrightarrow Y$ est une arête du champ de Markov exponentiel (Ch. 5, §6) avec $\\eta_{XY} = 1/\\varepsilon^2$ et $\\lambda_0^{(XY)} = 0$."
+        text: "Le lien $X \\leftrightarrow Y$ est une arête du champ de Markov exponentiel (Ch. 5, §6) avec la matrice d'interaction ci-dessus et $\\lambda_0^{(XY)} = 0$."
       - type: p
         text: "Le prior du nœud $Y$ doit être *vague* — l'instrument seul n'a pas de croyance a priori sur la valeur mesurée. On pose :"
       - type: math
@@ -65,17 +73,13 @@ sections:
         text: "Lors de l'itération EM (Ch. 7), le paramètre incliné de $Y$ sachant l'estimation courante $\\hat{\\eta}_X$ est :"
       - type: math
         label: "Inclinaison par le voisin $X$"
-        tex: "\\eta_Y^{\\,*} = \\eta_Y + \\eta_{XY} \\cdot \\hat{\\eta}_X = \\eta_Y + \\frac{1}{\\varepsilon^2}\\,\\hat{\\eta}_X"
+        tex: "\\eta_Y^{\\,*} = \\eta_Y + \\eta_{XY}^\\top\\, \\hat{\\eta}_X = \\begin{pmatrix} \\eta_Y^{(1)} + \\hat{\\eta}_X^{(1)}/\\varepsilon^2 \\\\ \\eta_Y^{(2)} \\end{pmatrix}"
       - type: p
         text: "Et symétriquement, l'estimation de $X$ est inclinée par $Y$ :"
       - type: math
-        tex: "\\eta_X^{\\,*} = \\eta_X + \\eta_{XY} \\cdot \\hat{\\eta}_Y = \\eta_X + \\frac{1}{\\varepsilon^2}\\,\\hat{\\eta}_Y"
+        tex: "\\eta_X^{\\,*} = \\eta_X + \\eta_{XY}\\, \\hat{\\eta}_Y = \\begin{pmatrix} \\eta_X^{(1)} + \\hat{\\eta}_Y^{(1)}/\\varepsilon^2 \\\\ \\eta_X^{(2)} \\end{pmatrix}"
       - type: p
-        text: "La force $1/\\varepsilon^2$ contrôle l'intensité de cette inclinaison mutuelle. À chaque itération, les $\\nu$ pseudo-observations de couplage sont ajoutées au compteur du nœud :"
-      - type: math
-        tex: "\\nu_n^{\\text{eff}} = \\nu_0 + n_{\\text{obs}} + \\nu_0^{\\text{couplage}} \\cdot |\\partial(\\text{nœud})|"
-      - type: p
-        text: "où $|\\partial(\\text{nœud})|$ est le nombre de voisins dans le graphe et $\\nu_0^{\\text{couplage}} = 1/\\varepsilon^2$."
+        text: "Seule la première composante (position) est affectée — la seconde (précision) ne passe pas à travers le couplage. La force $1/\\varepsilon^2$ contrôle l'intensité de cette inclinaison mutuelle sur les moyennes."
 
       - type: h3
         text: "Interprétation en termes de $\\lambda$ et $\\nu$"
@@ -96,9 +100,9 @@ sections:
         text: "Le résultat est élégant :"
       - type: box
         title: "Correspondance instrument–couplage"
-        tex: "Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2) \\quad \\Longleftrightarrow \\quad \\eta_{XY} = \\frac{1}{\\varepsilon^2}, \\quad \\lambda_0^{(XY)} = 0"
+        tex: "Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2) \\quad \\Longleftrightarrow \\quad \\eta_{XY} = \\begin{pmatrix} 1/\\varepsilon^2 & 0 \\\\ 0 & 0 \\end{pmatrix}, \\quad \\lambda_0^{(XY)} = 0"
       - type: p
-        text: "La précision $1/\\varepsilon^2$ de l'instrument *est* le paramètre d'interaction $\\eta_{XY}$. Plus l'instrument est précis ($\\varepsilon \\to 0$), plus $\\eta_{XY} \\to \\infty$ et le couplage force $Y \\to X$. Plus il est bruité ($\\varepsilon \\to \\infty$), plus $\\eta_{XY} \\to 0$ et les nœuds deviennent indépendants — exactement le critère de Hammersley-Clifford (Ch. 5, §6)."
+        text: "La précision $1/\\varepsilon^2$ de l'instrument apparaît dans le seul coefficient non nul de $\\eta_{XY}$. Plus l'instrument est précis ($\\varepsilon \\to 0$), plus $(\\eta_{XY})_{11} \\to \\infty$ et le couplage force $Y \\to X$. Plus il est bruité ($\\varepsilon \\to \\infty$), plus $\\eta_{XY} \\to 0$ et les nœuds deviennent indépendants — exactement le critère de Hammersley-Clifford (Ch. 5, §6)."
       - type: callout
         title: "Conséquence pour le simulateur."
         text: "Ce cas montre qu'un $\\nu_0$ de couplage *global* (identique pour tous les liens) est trop restrictif. Deux instruments avec des précisions $\\varepsilon_1^2 \\neq \\varepsilon_2^2$ nécessitent $\\eta_{XY} = 1/\\varepsilon_1^2$ et $\\eta_{XZ} = 1/\\varepsilon_2^2$ — il faut un $\\eta_{XY}$ *par arête*."
