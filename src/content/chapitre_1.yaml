@@ -1,0 +1,245 @@
+chapter: 1
+label: "Inférence Bayésienne · Chapitre 1"
+title: "Les Familles Exponentielles\net les Distributions Usuelles"
+subtitle: "Un cadre unificateur — de la Bernoulli à la Gaussienne, chaque loi se lit à travers le même prisme : statistique suffisante, paramètre naturel, log-partition."
+footer_right: "Familles Exponentielles · Distributions Usuelles"
+
+sections:
+  - number: "§ 1"
+    title: "Qu'est-ce qu'une famille exponentielle ?"
+    uses: [exp-family, suff-stat, nat-param, log-partition, base-measure]
+    content:
+      - type: p
+        text: "Un grand nombre de distributions classiques — Bernoulli, Poisson, Gaussienne, Gamma, Beta — partagent une structure commune. Elles appartiennent toutes à la *famille exponentielle*, définie par une forme canonique unique :"
+      - type: box
+        title: "Définition — Famille exponentielle"
+        tex: "p(x \\mid \\eta) = h(x)\\,\\exp\\!\\bigl(\\eta^\\top T(x) - A(\\eta)\\bigr)"
+      - type: p
+        text: "Cette écriture fait apparaître quatre ingrédients fondamentaux :"
+      - type: table
+        headers: ["Symbole", "Nom", "Rôle"]
+        rows:
+          - ["$T(x)$", "Statistique suffisante", "Résume toute l'information de $x$ sur le paramètre"]
+          - ["$\\eta$", "Paramètre naturel", "Vit dans le domaine naturel $\\Omega \\subset \\mathbb{R}^k$"]
+          - ["$A(\\eta)$", "Log-partition", "Normalise la distribution : $A(\\eta) = \\log \\int h(x)\\,e^{\\eta^\\top T(x)}\\,dx$"]
+          - ["$h(x)$", "Mesure de base", "Facteur indépendant de $\\eta$, fixe le support"]
+      - type: callout
+        title: "Pourquoi cette écriture est puissante."
+        text: "Toute l'information sur $\\eta$ contenue dans une observation $x$ est capturée par $T(x)$. Deux observations avec le même $T(x)$ sont *équivalentes* pour l'inférence — c'est le principe de suffisance."
+
+  - number: "§ 2"
+    title: "Les propriétés universelles de $A(\\eta)$"
+    uses: [log-partition, nat-param, exp-family]
+    content:
+      - type: p
+        text: "La log-partition $A(\\eta)$ n'est pas un simple terme technique — elle encode toute la géométrie de la famille. Ses dérivées donnent directement les moments de $T(x)$ :"
+      - type: box
+        title: "Théorème — Moments par dérivation"
+        tex: "\\nabla_\\eta A(\\eta) = \\mathbb{E}_\\eta[T(x)], \\qquad \\nabla^2_\\eta A(\\eta) = \\operatorname{Var}_\\eta[T(x)]"
+      - type: p
+        text: "La hessienne $\\nabla^2 A$ est toujours *semi-définie positive* (c'est une matrice de variance), ce qui fait de $A$ une fonction *convexe*. Cette convexité est au cœur des garanties de convergence de l'algorithme EM (Chapitre 7)."
+      - type: callout
+        title: "Le domaine naturel."
+        text: "L'ensemble $\\Omega = \\{\\eta : A(\\eta) < \\infty\\}$ — le *domaine naturel* — est toujours convexe et ouvert. En dehors de $\\Omega$, la distribution n'est pas normalisable."
+
+  - number: "§ 3"
+    title: "Bernoulli et Catégorielle"
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-bernoulli]
+    content:
+      - type: h3
+        text: "Bernoulli $\\mathrm{Ber}(p)$"
+      - type: p
+        text: "La plus simple des familles exponentielles. $X \\in \\{0, 1\\}$ avec $P(X=1) = p$ :"
+      - type: math
+        tex: "p(x \\mid p) = p^x (1-p)^{1-x} = \\exp\\!\\Bigl(x \\log\\frac{p}{1-p} + \\log(1-p)\\Bigr)"
+      - type: p
+        text: "On lit immédiatement la forme canonique :"
+      - type: table
+        headers: ["Composante", "Expression", "Interprétation"]
+        rows:
+          - ["$T(x)$", "$x$", "L'observation elle-même"]
+          - ["$\\eta$", "$\\log\\frac{p}{1-p}$ (logit)", "Log-odds, $\\eta \\in \\mathbb{R}$"]
+          - ["$A(\\eta)$", "$\\log(1 + e^\\eta)$ (softplus)", "Normalisation"]
+          - ["$h(x)$", "$1$", "Mesure de comptage"]
+      - type: p
+        text: "La bijection inverse : $p = \\sigma(\\eta) = 1/(1+e^{-\\eta})$ — la *sigmoïde*. Vérification : $\\nabla A = e^\\eta/(1+e^\\eta) = \\sigma(\\eta) = \\mathbb{E}[X] = p$. ✓"
+      - type: h3
+        text: "Catégorielle $\\mathrm{Cat}(\\pi_1, \\dots, \\pi_K)$"
+      - type: p
+        text: "Généralisation à $K$ catégories. $X \\in \\{1, \\dots, K\\}$ avec $P(X=k) = \\pi_k$ :"
+      - type: math
+        tex: "T(x) = (\\mathbb{1}_{x=1}, \\dots, \\mathbb{1}_{x=K-1}), \\quad \\eta_k = \\log\\frac{\\pi_k}{\\pi_K}, \\quad A(\\eta) = \\log\\Bigl(1 + \\textstyle\\sum_{k=1}^{K-1} e^{\\eta_k}\\Bigr)"
+      - type: p
+        text: "On utilise $K-1$ paramètres naturels, la $K$-ème catégorie servant de référence. C'est le *softmax* : $\\pi_k = e^{\\eta_k} / (1 + \\sum_j e^{\\eta_j})$."
+
+  - number: "§ 4"
+    title: "Poisson"
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-poisson]
+    content:
+      - type: p
+        text: "La loi de Poisson modélise le nombre d'événements dans un intervalle fixe. $X \\in \\mathbb{N}$ avec $P(X=k) = \\frac{\\lambda^k}{k!}\\,e^{-\\lambda}$ :"
+      - type: math
+        tex: "p(x \\mid \\lambda) = \\frac{1}{x!}\\,\\exp\\!\\bigl(x \\log\\lambda - \\lambda\\bigr)"
+      - type: table
+        headers: ["Composante", "Expression", "Interprétation"]
+        rows:
+          - ["$T(x)$", "$x$", "Le compte brut"]
+          - ["$\\eta$", "$\\log\\lambda$", "Log-taux, $\\eta \\in \\mathbb{R}$"]
+          - ["$A(\\eta)$", "$e^\\eta$", "Normalisation"]
+          - ["$h(x)$", "$1/x!$", "Mesure de comptage factorielle"]
+      - type: p
+        text: "La bijection : $\\lambda = e^\\eta$. Vérification : $\\nabla A = e^\\eta = \\lambda = \\mathbb{E}[X]$. ✓"
+      - type: callout
+        title: "Domaine naturel."
+        text: "$A(\\eta) = e^\\eta < \\infty$ pour tout $\\eta \\in \\mathbb{R}$ : le domaine naturel est $\\mathbb{R}$ entier."
+
+  - number: "§ 5"
+    title: "Géométrique et Exponentielle"
+    uses: [exp-family, suff-stat, nat-param, log-partition]
+    content:
+      - type: h3
+        text: "Géométrique $\\mathrm{Geo}(p)$"
+      - type: p
+        text: "Nombre d'échecs avant le premier succès. $X \\in \\mathbb{N}$ :"
+      - type: math
+        tex: "p(x \\mid p) = p(1-p)^x = \\exp\\!\\bigl(x\\log(1-p) + \\log p\\bigr)"
+      - type: table
+        headers: ["Composante", "Expression"]
+        rows:
+          - ["$T(x)$", "$x$"]
+          - ["$\\eta$", "$\\log(1-p)$, avec $\\eta < 0$"]
+          - ["$A(\\eta)$", "$-\\log(1 - e^\\eta)$"]
+          - ["$h(x)$", "$1$"]
+      - type: p
+        text: "Bijection : $p = 1 - e^\\eta$. Domaine naturel : $\\eta < 0$."
+      - type: h3
+        text: "Exponentielle $\\mathrm{Exp}(\\lambda)$"
+      - type: p
+        text: "Analogue continue de la géométrique — temps d'attente du premier événement. $X \\geq 0$ :"
+      - type: math
+        tex: "p(x \\mid \\lambda) = \\lambda\\,e^{-\\lambda x} = \\exp\\!\\bigl(-\\lambda x + \\log\\lambda\\bigr)"
+      - type: table
+        headers: ["Composante", "Expression"]
+        rows:
+          - ["$T(x)$", "$x$"]
+          - ["$\\eta$", "$-\\lambda$, avec $\\eta < 0$"]
+          - ["$A(\\eta)$", "$-\\log(-\\eta)$"]
+          - ["$h(x)$", "$1$"]
+      - type: p
+        text: "Vérification : $\\nabla A = -1/\\eta = 1/\\lambda = \\mathbb{E}[X]$. ✓"
+
+  - number: "§ 6"
+    title: "Gaussienne"
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-gaussian]
+    content:
+      - type: p
+        text: "La Gaussienne est la famille exponentielle la plus utilisée en pratique. Sa forme canonique révèle une statistique suffisante *bidimensionnelle* :"
+      - type: math
+        label: "Forme canonique"
+        tex: "p(x \\mid \\mu, \\sigma^2) = \\frac{1}{\\sqrt{2\\pi}}\\,\\exp\\!\\Bigl(\\frac{\\mu}{\\sigma^2}\\,x - \\frac{1}{2\\sigma^2}\\,x^2 - \\frac{\\mu^2}{2\\sigma^2} - \\frac{1}{2}\\log\\sigma^2\\Bigr)"
+      - type: table
+        headers: ["Composante", "Expression", "Interprétation"]
+        rows:
+          - ["$T(x)$", "$(x,\\; x^2)$", "Position *et* dispersion"]
+          - ["$\\eta$", "$(\\mu/\\sigma^2,\\; -1/(2\\sigma^2))$", "Deux paramètres naturels"]
+          - ["$A(\\eta)$", "$-\\eta_1^2/(4\\eta_2) + \\tfrac{1}{2}\\log(-\\pi/\\eta_2)$", "Normalisation"]
+          - ["$h(x)$", "$1/\\sqrt{2\\pi}$", "Constante"]
+      - type: h3
+        text: "Bijection $\\eta \\leftrightarrow (\\mu, \\sigma^2)$"
+      - type: math
+        tex: "\\sigma^2 = -\\frac{1}{2\\eta_2}, \\qquad \\mu = -\\frac{\\eta_1}{2\\eta_2} = \\eta_1 \\cdot \\sigma^2"
+      - type: p
+        text: "Domaine naturel : $\\eta_2 < 0$ (sinon l'intégrale diverge). La contrainte $\\sigma^2 > 0$ est automatiquement satisfaite."
+      - type: callout
+        title: "Pourquoi $T(x) = (x, x^2)$ ?"
+        text: "La Gaussienne a *deux* paramètres ($\\mu$ et $\\sigma^2$), donc il faut *deux* statistiques suffisantes. Observer $\\sum x_i$ seul ne suffit pas pour inférer $\\sigma^2$ — il faut aussi $\\sum x_i^2$."
+      - type: p
+        text: "Vérification des moments :"
+      - type: math
+        tex: "\\nabla_{\\eta_1} A = -\\frac{\\eta_1}{2\\eta_2} = \\mu = \\mathbb{E}[X] \\quad ✓, \\qquad \\nabla_{\\eta_2} A = \\frac{\\eta_1^2}{4\\eta_2^2} - \\frac{1}{2\\eta_2} = \\mu^2 + \\sigma^2 = \\mathbb{E}[X^2] \\quad ✓"
+
+  - number: "§ 7"
+    title: "Gamma et ses cas particuliers"
+    uses: [exp-family, suff-stat, nat-param, log-partition]
+    content:
+      - type: p
+        text: "La loi Gamma $\\mathrm{Gamma}(\\alpha, \\beta)$ modélise des quantités strictement positives (temps, variances, précisions). $X > 0$ :"
+      - type: math
+        tex: "p(x \\mid \\alpha, \\beta) = \\frac{\\beta^\\alpha}{\\Gamma(\\alpha)}\\,x^{\\alpha-1}\\,e^{-\\beta x}"
+      - type: math
+        label: "Forme canonique"
+        tex: "= \\frac{1}{x}\\,\\exp\\!\\Bigl((\\alpha-1)\\log x - \\beta x - \\log\\Gamma(\\alpha) + \\alpha\\log\\beta\\Bigr)"
+      - type: table
+        headers: ["Composante", "Expression"]
+        rows:
+          - ["$T(x)$", "$(\\log x,\\; x)$"]
+          - ["$\\eta$", "$(\\alpha - 1,\\; -\\beta)$"]
+          - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1 + 1) - (\\eta_1+1)\\log(-\\eta_2)$"]
+          - ["$h(x)$", "$1/x$"]
+      - type: p
+        text: "Domaine naturel : $\\eta_1 > -1$ et $\\eta_2 < 0$, soit $\\alpha > 0$ et $\\beta > 0$."
+      - type: h3
+        text: "Cas particuliers"
+      - type: table
+        headers: ["Loi", "Paramètres", "Usage typique"]
+        rows:
+          - ["Exponentielle", "$\\alpha = 1$", "Temps d'attente (un seul $\\eta$)"]
+          - ["Chi-deux $\\chi^2_k$", "$\\alpha = k/2,\\; \\beta = 1/2$", "Tests d'hypothèse"]
+          - ["Inverse-Gamma", "$Y = 1/X$", "Prior sur $\\sigma^2$ en bayésien"]
+
+  - number: "§ 8"
+    title: "Beta"
+    uses: [exp-family, suff-stat, nat-param, log-partition]
+    content:
+      - type: p
+        text: "La loi Beta $\\mathrm{Beta}(\\alpha, \\beta)$ est le prior conjugué naturel de la Bernoulli. $X \\in (0, 1)$ :"
+      - type: math
+        tex: "p(x \\mid \\alpha, \\beta) = \\frac{\\Gamma(\\alpha+\\beta)}{\\Gamma(\\alpha)\\Gamma(\\beta)}\\,x^{\\alpha-1}(1-x)^{\\beta-1}"
+      - type: table
+        headers: ["Composante", "Expression"]
+        rows:
+          - ["$T(x)$", "$(\\log x,\\; \\log(1-x))$"]
+          - ["$\\eta$", "$(\\alpha - 1,\\; \\beta - 1)$"]
+          - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1+1) + \\log\\Gamma(\\eta_2+1) - \\log\\Gamma(\\eta_1+\\eta_2+2)$"]
+          - ["$h(x)$", "$1/(x(1-x))$"]
+      - type: p
+        text: "La moyenne est $\\mathbb{E}[X] = \\alpha/(\\alpha+\\beta)$ — un *shrinkage* entre 0 et 1, pondéré par les pseudo-observations."
+      - type: callout
+        title: "Lien avec la Bernoulli."
+        text: "Si $p \\sim \\mathrm{Beta}(\\alpha, \\beta)$ et $X_i \\mid p \\sim \\mathrm{Ber}(p)$, alors $p \\mid \\mathbf{x} \\sim \\mathrm{Beta}(\\alpha + \\sum x_i,\\; \\beta + n - \\sum x_i)$. C'est la conjugaison en action — le sujet du Chapitre 4."
+
+  - number: "§ 9"
+    title: "Tableau récapitulatif"
+    uses: [exp-family, suff-stat, nat-param, log-partition, base-measure, cs-bernoulli, cs-poisson, cs-gaussian]
+    content:
+      - type: p
+        text: "Toutes ces distributions partagent la même structure — seuls les ingrédients changent :"
+      - type: table
+        headers: ["Famille", "$T(x)$", "$\\eta$", "$A(\\eta)$", "$h(x)$"]
+        rows:
+          - ["Bernoulli", "$x$", "$\\mathrm{logit}(p)$", "$\\log(1+e^\\eta)$", "$1$"]
+          - ["Poisson", "$x$", "$\\log\\lambda$", "$e^\\eta$", "$1/x!$"]
+          - ["Géométrique", "$x$", "$\\log(1-p)$", "$-\\log(1-e^\\eta)$", "$1$"]
+          - ["Exponentielle", "$x$", "$-\\lambda$", "$-\\log(-\\eta)$", "$1$"]
+          - ["Gaussienne", "$(x, x^2)$", "$(\\mu/\\sigma^2, -1/(2\\sigma^2))$", "voir §6", "$1/\\sqrt{2\\pi}$"]
+          - ["Gamma", "$(\\log x, x)$", "$(\\alpha-1, -\\beta)$", "voir §7", "$1/x$"]
+          - ["Beta", "$(\\log x, \\log(1-x))$", "$(\\alpha-1, \\beta-1)$", "voir §8", "$1/(x(1-x))$"]
+      - type: callout
+        title: "Le fil conducteur."
+        text: "Dans la suite du cours, chaque résultat — conjugaison (Ch. 4), interaction (Ch. 5), données hétérogènes (Ch. 6), EM (Ch. 7) — se démontre *une seule fois* dans le cadre général, puis s'instancie sur n'importe quelle ligne de ce tableau."
+
+  - number: "Synthèse"
+    title: "Un cadre, une notation, toutes les lois"
+    uses: [exp-family, suff-stat, nat-param, log-partition]
+    content:
+      - type: p
+        text: "Ce chapitre a posé les fondations :"
+      - type: table
+        headers: ["Concept", "Ce qu'il unifie"]
+        rows:
+          - ["$T(x)$ — statistique suffisante", "Bernoulli : $x$, Gaussienne : $(x, x^2)$, Gamma : $(\\log x, x)$"]
+          - ["$\\eta$ — paramètre naturel", "Logit, log-taux, paramètres de précision..."]
+          - ["$A(\\eta)$ — log-partition", "Normalise, donne les moments, garantit la convexité"]
+          - ["$h(x)$ — mesure de base", "Fixe le support (discret, continu, borné...)"]
+      - type: p
+        text: "Le Chapitre 4 exploitera cette structure pour construire le prior conjugué *universel* — un prior qui fonctionne automatiquement pour chaque ligne du tableau ci-dessus."

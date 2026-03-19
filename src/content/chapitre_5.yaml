@@ -1,3 +1,4 @@
+chapter: 5
 label: "Inférence Bayésienne · Chapitre 5"
 title: "Interactions entre\nFamilles Exponentielles"
 subtitle: "Un seul paramètre *η_xy* couple deux distributions arbitraires — pas nécessairement de la même famille. La conditionnelle reste dans la sienne ; la marginale en sort. De cette asymétrie naissent les modèles linéaires généralisés."
@@ -6,6 +7,7 @@ footer_right: "Interactions · Familles Exponentielles"
 sections:
   - number: "§ 1"
     title: "De la variable isolée au couple"
+    uses: [exp-family, suff-stat, nat-param, joint-suff-stat, bayesian-update]
     content:
       - type: p
         text: "Au chapitre précédent, on traitait $x$ seul. Dès qu'on observe un couple $(x, y)$, la question est : comment écrire $p(x,y\\mid\\eta)$ comme une famille exponentielle ? La réponse tient à la structure même de la définition canonique."
@@ -26,6 +28,7 @@ sections:
 
   - number: "§ 2"
     title: "Le paramètre d'interaction η_xy"
+    uses: [eta-xy, natural-domain, exp-family, suff-stat]
     content:
       - type: p
         text: "Quand $T_x$ est de dimension $k_x$ et $T_y$ de dimension $k_y$, le bloc d'interaction $\\eta_{xy}$ est une matrice de taille $k_x \\times k_y$. Dans le cas scalaire ($k_x = k_y = 1$), c'est simplement un réel — le cas canonique qui sera visualisé dans la simulation."
@@ -105,6 +108,7 @@ sections:
 
   - number: "§ 3"
     title: "Théorème fondamental : la conditionnelle reste dans sa famille"
+    uses: [tilted-param, markov-blanket, hammersley-clifford, marginal-exit, exp-family]
     content:
       - type: p
         text: "La propriété la plus remarquable de la densité jointe exponentielle est la suivante : si on conditionne sur *tous les voisins directs* de $Y$ dans le modèle joint — c'est-à-dire sur sa *couverture de Markov* — la loi de $Y$ reste dans la même famille exponentielle, avec un paramètre naturel *incliné* par chaque voisin."
@@ -160,6 +164,7 @@ sections:
 
   - number: "§ 4"
     title: "La marginale sort de sa famille"
+    uses: [marginal-exit, log-partition, exp-family]
     content:
       - type: p
         text: "La situation est asymétrique : si la conditionnelle de $Y$ sachant $X$ reste dans la famille de $Y$, la *marginale de $X$*, elle, en sort généralement. L'intégration sur $y$ fait apparaître la log-partition de $Y$ évaluée au paramètre incliné :"
@@ -174,6 +179,7 @@ sections:
 
   - number: "§ 5"
     title: "L'interaction cross-type — deux familles différentes"
+    uses: [eta-xy, tilted-param, suff-stat]
     content:
       - type: p
         text: "Rien dans la construction précédente n'exige que $X$ et $Y$ appartiennent à la même famille exponentielle. Le terme d'interaction $\\eta_{xy} T_x(x) T_y(y)$ couple les statistiques suffisantes de deux familles *arbitraires et distinctes*."
@@ -196,6 +202,7 @@ sections:
 
   - number: "§ 5bis"
     title: "Directionalité — ce que η_xy peut et ne peut pas encoder"
+    uses: [eta-xy, tilted-param, suff-stat, nat-param, exp-family]
     content:
       - type: p
         text: "Une question naturelle se pose : peut-on faire en sorte que l'interaction soit *orientée* — que $X$ influence $Y$ mais pas l'inverse ? La réponse courte est non, pas dans le cadre d'une densité jointe. Mais la nuance mérite d'être déroulée avec soin, car la structure de $\\eta_{xy}$ crée bien une forme d'asymétrie — géométrique, pas causale."
@@ -316,6 +323,7 @@ sections:
 
   - number: "§ 6"
     title: "Champs de Markov exponentiels"
+    uses: [hammersley-clifford, eta-xy, exp-family]
     content:
       - type: p
         text: "La construction se généralise naturellement à $p$ variables. La densité jointe d'un *champ de Markov exponentiel* sur $(X_1,\\dots,X_p)$ s'écrit :"
@@ -343,6 +351,7 @@ sections:
 
   - number: "§ 7"
     title: "Mise à jour conjuguée — les statistiques croisées s'accumulent"
+    uses: [bayesian-update, joint-suff-stat, lambda, nu, suff-stat]
     content:
       - type: p
         text: "La beauté du cadre conjugué s'étend intact au cas joint. Un échantillon de $n$ paires $(x_i, y_i)$ forme une famille exponentielle avec statistique suffisante jointe. La même règle de mise à jour en deux additions s'applique — avec un bloc supplémentaire pour le terme croisé :"
@@ -367,6 +376,7 @@ sections:
 
   - number: "§ 8"
     title: "Simulation interactive"
+    uses: [eta-xy, tilted-param, exp-family]
     content:
       - type: p
         text: "La densité jointe simulée ci-dessous est de la forme $\\log p(x,y) = \\eta_x T_x(x) - \\tfrac{1}{2}x^2 - \\tfrac{1}{2}y^2 + \\eta_{xy}\\,T_x(x)\\,T_y(y)$. L'ancrage quadratique assure la normalisabilité pour $|\\eta_{xy}| < 1$ (cas linéaire) ou pour tout $\\eta_{xy}$ (statistiques bornées comme $\\mathrm{sgn}$)."
@@ -386,6 +396,7 @@ sections:
 
   - number: "Synthèse"
     title: "Ce que la structure des interactions révèle"
+    uses: [joint-suff-stat, eta-xy, tilted-param, log-partition, lambda, hammersley-clifford]
     content:
       - type: table
         headers: ["Objet", "Rôle", "Propriété clé"]

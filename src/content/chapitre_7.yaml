@@ -1,0 +1,235 @@
+chapter: 7
+label: "Inférence Bayésienne · Chapitre 7"
+title: "EM : Stabilité et Convergence\ndans les Familles Exponentielles"
+subtitle: "De la montée monotone de la vraisemblance observée jusqu'aux garanties de validité du domaine naturel — pourquoi EM marche, où il peut échouer, et comment le réparer."
+footer_right: "EM · Stabilité · Familles Exponentielles"
+
+sections:
+  - number: "§ 1"
+    title: "Le cadre : données incomplètes et vraisemblance observée"
+    uses: [exp-family, log-partition, suff-stat]
+    content:
+      - type: p
+        text: "On dispose de $n$ observations partielles $y_i = \\Pi\\,T(x_i) = T_S(x_i)$. La vraisemblance *observée* marginalise sur les composantes cachées $T_{\\bar{S}}(x)$ :"
+      - type: math
+        label: "Vraisemblance observée"
+        tex: "\\ell(\\eta ; \\mathbf{y}) = \\sum_{i=1}^n \\log \\int p(T_S(x_i), T_{\\bar{S}} \\mid \\eta)\\, dT_{\\bar{S}}"
+      - type: p
+        text: "Cette intégrale est en général intractable : $A(\\eta)$ couple toutes les composantes de $\\eta$, et la marginalisation détruit la forme exponentielle de la vraisemblance. On ne peut plus écrire $\\ell(\\eta ; \\mathbf{y}) = \\eta^\\top \\lambda - \\nu A(\\eta)$."
+      - type: callout
+        title: "Ce qu'EM contourne."
+        text: "EM n'intègre jamais explicitement sur $T_{\\bar{S}}$. Il remplace l'intégrale par une espérance conditionnelle — calculable dès que le modèle complet est dans une famille exponentielle."
+
+  - number: "§ 2"
+    title: "L'algorithme EM : E-step et M-step"
+    uses: [q-function, em-imputation, suff-stat, log-partition, exp-family]
+    content:
+      - type: p
+        text: "À l'itération $t$, on dispose d'un estimateur courant $\\eta^{(t)} \\in \\text{int}(\\mathcal{H})$. L'algorithme alterne deux opérations."
+      - type: h3
+        text: "E-step — construire la fonction Q"
+      - type: p
+        text: "On calcule l'espérance de la log-vraisemblance *complète* sous la loi des données manquantes conditionnellement aux données observées et au paramètre courant :"
+      - type: math
+        label: "Fonction Q"
+        tex: "Q(\\eta \\mid \\eta^{(t)}) = \\mathbb{E}_{\\eta^{(t)}}\\!\\left[\\log p(\\mathbf{x}, T_{\\bar{S}} \\mid \\eta) \\mid T_S = \\mathbf{y}\\right]"
+      - type: p
+        text: "Dans une famille exponentielle, $\\log p = \\eta^\\top T(x) - A(\\eta) + \\log h(x)$. La linéarité en $T(x)$ simplifie le E-step à une imputation de statistiques suffisantes :"
+      - type: math
+        tex: "Q(\\eta \\mid \\eta^{(t)}) = \\eta^\\top \\underbrace{\\sum_i \\widetilde{T}_i^{(t)}}_{\\text{stat. complétée}} - n\\,A(\\eta) + \\text{cst}(\\eta^{(t)})"
+      - type: math
+        label: "Statistiques imputées"
+        tex: "\\widetilde{T}_i^{(t)} = \\begin{pmatrix} T_{S,i} \\\\ \\mathbb{E}_{\\eta^{(t)}}[T_{\\bar{S}}(x) \\mid T_S(x) = y_i] \\end{pmatrix}"
+      - type: h3
+        text: "M-step — maximiser Q"
+      - type: p
+        text: "On met à jour le paramètre en maximisant $Q$ par rapport à $\\eta$ :"
+      - type: math
+        tex: "\\eta^{(t+1)} = \\operatorname{arg\\,max}_{\\eta}\\; Q(\\eta \\mid \\eta^{(t)}) = (\\nabla A)^{-1}\\!\\left(\\frac{1}{n}\\sum_i \\widetilde{T}_i^{(t)}\\right)"
+      - type: p
+        text: "La condition du premier ordre $\\nabla_\\eta Q = 0$ donne $\\nabla A(\\eta^{(t+1)}) = \\bar{T}^{(t)}$, c'est-à-dire que le paramètre de moyenne posterior doit égaler la statistique suffisante empirique complétée."
+      - type: box
+        title: "EM dans une famille exponentielle — forme close"
+        tex: "\\text{E-step : } \\widetilde{T}_i^{(t)} = \\bigl(T_{S,i},\\ \\mathbb{E}_{\\eta^{(t)}}[T_{\\bar S} \\mid T_S = y_i]\\bigr) \\\\[6pt] \\text{M-step : } \\nabla A(\\eta^{(t+1)}) = \\frac{1}{n}\\sum_i \\widetilde{T}_i^{(t)}"
+
+  - number: "§ 3"
+    title: "Montée monotone — le théorème fondamental"
+    uses: [monotone-em, q-function]
+    content:
+      - type: p
+        text: "La propriété centrale d'EM est la *monotonie* de la vraisemblance observée à chaque itération."
+      - type: box
+        title: "Théorème — Monotonie d'EM (Dempster, Laird, Rubin 1977)"
+        tex: "\\ell(\\eta^{(t+1)} ; \\mathbf{y}) \\geq \\ell(\\eta^{(t)} ; \\mathbf{y}), \\qquad \\forall\\, t \\geq 0"
+      - type: h3
+        text: "Preuve par décomposition"
+      - type: p
+        text: "La décomposition clé lie vraisemblance observée, fonction Q et entropie conditionnelle. Pour tout $\\eta$ et $\\eta'$ :"
+      - type: math
+        tex: "\\ell(\\eta ; \\mathbf{y}) = Q(\\eta \\mid \\eta') - \\underbrace{\\mathbb{E}_{\\eta'}\\!\\left[\\log p(T_{\\bar S} \\mid T_S, \\eta) \\mid T_S\\right]}_{H(\\eta \\mid \\eta') \\;\\leq\\; 0 \\text{ par Jensen}}"
+      - type: p
+        text: "Par l'inégalité de Jensen appliquée au logarithme, $H(\\eta' \\mid \\eta') \\geq H(\\eta^{(t+1)} \\mid \\eta^{(t)})$. Combiné avec $Q(\\eta^{(t+1)} \\mid \\eta^{(t)}) \\geq Q(\\eta^{(t)} \\mid \\eta^{(t)})$ par définition du M-step, on conclut $\\ell(\\eta^{(t+1)}) \\geq \\ell(\\eta^{(t)})$."
+      - type: callout
+        title: "Ce que garantit la monotonie."
+        text: "La suite $\\bigl(\\ell(\\eta^{(t)})\\bigr)_t$ est croissante et bornée supérieurement (la vraisemblance est finie sur $\\text{int}(\\mathcal{H})$) : elle converge nécessairement. Mais vers *quoi* — un maximum global, local, ou un point selle ? La monotonie seule ne le dit pas."
+
+  - number: "§ 4"
+    title: "Points fixes et conditions de stationnarité"
+    uses: [score-equation, em-imputation, log-partition]
+    content:
+      - type: p
+        text: "Un point fixe $\\eta^\\star$ d'EM vérifie $\\eta^{(t+1)} = \\eta^{(t)} = \\eta^\\star$, c'est-à-dire que la statistique imputée coïncide avec le paramètre de moyenne courant :"
+      - type: math
+        tex: "\\nabla A(\\eta^\\star) = \\frac{1}{n}\\sum_i \\mathbb{E}_{\\eta^\\star}[T(x_i) \\mid T_{S,i} = y_i]"
+      - type: p
+        text: "En dérivant $\\ell(\\eta ; \\mathbf{y})$ par rapport à $\\eta$ et en utilisant la règle de score, on montre que cette condition est *exactement* l'équation de score de la vraisemblance observée :"
+      - type: math
+        tex: "\\nabla_\\eta \\ell(\\eta^\\star ; \\mathbf{y}) = \\sum_i \\mathbb{E}_{\\eta^\\star}[T(x_i) \\mid y_i] - n\\,\\nabla A(\\eta^\\star) = 0"
+      - type: box
+        title: "Équivalence fondamentale"
+        tex: "\\eta^\\star \\text{ est point fixe d'EM} \\iff \\nabla_\\eta \\ell(\\eta^\\star ; \\mathbf{y}) = 0"
+      - type: p
+        text: "Tout point stationnaire de la vraisemblance observée est un point fixe d'EM, et réciproquement. EM converge donc vers un *extremum* (local ou global) de $\\ell$ — jamais vers un simple point selle générique."
+      - type: callout
+        title: "Unicité et maximum global."
+        text: "Si la vraisemblance observée est *strictement concave* en $\\eta$ (ce qui est garanti quand la famille exponentielle est minimale et que les données sont suffisamment informatives), il n'existe qu'un seul point stationnaire : le maximum global. La convexité de $A$ est la clé — $\\ell$ est alors concave et EM converge globalement."
+
+  - number: "§ 5"
+    title: "Validité du domaine naturel — où EM peut échouer"
+    uses: [natural-domain, mean-space, exp-family]
+    content:
+      - type: p
+        text: "La montée monotone est prouvée *conditionnellement* au fait que $\\eta^{(t)} \\in \\text{int}(\\mathcal{H})$ à chaque étape. Cette condition n'est pas automatique."
+      - type: h3
+        text: "Le domaine naturel et sa frontière"
+      - type: p
+        text: "Le domaine naturel $\\mathcal{H} = \\{\\eta : A(\\eta) < \\infty\\}$ est ouvert et convexe. Sur sa frontière $\\partial\\mathcal{H}$, la log-partition diverge : $A(\\eta) \\to +\\infty$, ce qui correspond à des distributions dégénérées. La bijection $\\nabla A : \\text{int}(\\mathcal{H}) \\to \\text{int}(\\mathcal{M})$ cesse d'être définie sur $\\partial\\mathcal{H}$."
+      - type: h3
+        text: "Trois modes de sortie du domaine"
+      - type: table
+        headers: ["Mode", "Mécanisme", "Exemple canonique"]
+        rows:
+          - ["Variance dégénérée", "$\\widetilde{T}_i^{(t)}$ s'approche de la parabole $\\mu_2 = \\mu_1^2$", "Gaussienne : $\\hat\\sigma^2 \\to 0$, $\\eta_2 \\to -\\infty$"]
+          - ["Statistique hors de $\\mathcal{M}$", "Moyenne des $\\widetilde{T}_i$ viole les contraintes non-linéaires de $\\mathcal{M}$", "Multinomiale : probabilité $\\hat p_k < 0$"]
+          - ["Prior au bord", "$\\lambda_0/\\nu_0 \\in \\partial\\mathcal{M}$ attire les itérés vers la frontière", "Prior avec $\\sigma_0^2 = 0$ (dégénéré)"]
+      - type: p
+        text: "Dans le cas gaussien (§ 5 du chapitre 4), l'espace de moyenne est le cône convexe :"
+      - type: math
+        tex: "\\mathcal{M} = \\bigl\\{(\\mu_1, \\mu_2) \\in \\mathbb{R}^2 : \\mu_2 > \\mu_1^2\\bigr\\}"
+      - type: p
+        text: "Si $n$ est petit et $T_S = \\{x\\}$ seul (on n'observe pas $x^2$), l'imputation de $\\widetilde{x^2}$ requiert $\\mathbb{E}[X^2 \\mid X = x, \\eta^{(t)}]$. Sous un modèle gaussien bivarié mal conditionné, cette espérance peut être inférieure à $x^2$, violant $\\mu_2 > \\mu_1^2$ et envoyant $\\eta_2^{(t+1)} > 0$ — hors de $\\mathcal{H}$."
+      - type: callout
+        title: "Ce que la monotonie ne garantit pas."
+        text: "EM garantit $\\ell(\\eta^{(t+1)}) \\geq \\ell(\\eta^{(t)})$ mais *pas* $\\eta^{(t+1)} \\in \\text{int}(\\mathcal{H})$. Le chemin peut longer $\\partial\\mathcal{H}$ en augmentant la vraisemblance jusqu'à un point de singularité — une trajectoire valide au sens de la monotonie, mais invalide au sens probabiliste."
+
+  - number: "§ 6"
+    title: "Le prior conjugué comme barrière — portée et limites"
+    uses: [conjugate-prior, shrinkage, mean-space, lambda, nu]
+    content:
+      - type: p
+        text: "Avec un prior conjugué propre ($\\nu_0 > 0$, $\\lambda_0/\\nu_0 \\in \\text{int}(\\mathcal{M})$), le log-posterior à maximiser au M-step devient :"
+      - type: math
+        tex: "Q_\\text{post}(\\eta \\mid \\eta^{(t)}) = \\eta^\\top\\!\\underbrace{\\bigl(\\lambda_0 + \\textstyle\\sum_i \\widetilde{T}_i^{(t)}\\bigr)}_{\\lambda_n^{(t)}} - \\underbrace{(\\nu_0 + n)}_{\\nu_n}\\,A(\\eta)"
+      - type: p
+        text: "Le terme $-\\nu_n A(\\eta)$ diverge vers $-\\infty$ sur $\\partial\\mathcal{H}$ : il constitue une *barrière logarithmique* naturelle qui repousse le mode du posterior de la frontière."
+      - type: math
+        label: "Mode du posterior MAP"
+        tex: "\\nabla A(\\eta^{(t+1)}) = \\frac{\\lambda_n^{(t)}}{\\nu_n} = \\frac{\\nu_0}{\\nu_n}\\cdot\\frac{\\lambda_0}{\\nu_0} + \\frac{n}{\\nu_n}\\cdot\\bar{T}^{(t)}"
+      - type: p
+        text: "Ce ratio est une moyenne pondérée entre $\\lambda_0/\\nu_0 \\in \\text{int}(\\mathcal{M})$ et $\\bar{T}^{(t)}$. Par convexité de $\\mathcal{M}$, le résultat est dans $\\text{int}(\\mathcal{M})$ dès que $\\bar{T}^{(t)} \\in \\mathcal{M}$ — ce qui est le cas si $\\widetilde{T}_i^{(t)}$ est calculé correctement."
+      - type: h3
+        text: "Les limites de cette protection"
+      - type: table
+        headers: ["Situation", "Protection du prior", "Raison"]
+        rows:
+          - ["Mode MAP (M-step exact)", "✅ Oui", "Convexité de $\\mathcal{M}$ + moyenne pondérée"]
+          - ["Itérés intermédiaires (gradient ascent)", "⚠️ Non", "Le chemin peut temporairement sortir de $\\mathcal{H}$"]
+          - ["$\\nu_0 \\to 0$ (prior quasi-impropre)", "❌ Quasi-nulle", "Poids du prior $\\nu_0/\\nu_n \\to 0$, barrière infiniment basse"]
+          - ["E-step mal conditionné", "❌ Non", "Statistique imputée peut violer $\\mathcal{M}$ avant le M-step"]
+      - type: callout
+        title: "Le cas $\\nu_0 = 10^{-6}$ du chapitre 4."
+        text: "Avec $\\nu_0 = 10^{-6}$, le poids du prior sur le M-step est de l'ordre de $10^{-6}/n$ — négligeable dès $n \\geq 1$. La barrière existe en théorie mais est quasi-inexistante en pratique : on est dans le régime quasi-fréquentiste et seul le soin apporté à l'imputation protège la validité."
+
+  - number: "§ 7"
+    title: "La solution structurelle — EM dans l'espace des moments $\\mathcal{M}$"
+    uses: [mean-space, bregman, natural-domain]
+    content:
+      - type: p
+        text: "La garantie propre s'obtient en reparamétrisant l'algorithme dans $\\mathcal{M}$ plutôt que dans $\\mathcal{H}$. Les deux espaces sont liés par la bijection de Legendre :"
+      - type: math
+        tex: "\\mu = \\nabla A(\\eta) \\in \\text{int}(\\mathcal{M}), \\qquad \\eta = \\nabla A^*(\\mu) \\in \\text{int}(\\mathcal{H})"
+      - type: p
+        text: "où $A^*$ est la transformée de Legendre de $A$, convexe sur $\\text{int}(\\mathcal{M})$."
+      - type: h3
+        text: "EM dans $\\mathcal{M}$ : projection de Bregman"
+      - type: p
+        text: "Le M-step en paramètre de moyenne consiste à projeter la statistique complétée sur $\\mathcal{M}$ au sens de la divergence de Bregman $D_A$ associée à $A$ :"
+      - type: math
+        label: "M-step projeté"
+        tex: "\\mu^{(t+1)} = \\Pi_{\\mathcal{M}}^{D_A}\\!\\left(\\frac{1}{n}\\sum_i \\widetilde{T}_i^{(t)}\\right) = \\underset{\\mu \\in \\mathcal{M}}{\\operatorname{arg\\,min}}\\; D_A\\!\\left(\\mu,\\, \\bar{T}^{(t)}\\right)"
+      - type: p
+        text: "La divergence de Bregman $D_A(\\mu, \\mu') = A^*(\\mu) - A^*(\\mu') - \\langle \\nabla A^*(\\mu'), \\mu - \\mu'\\rangle$ est la généralisation naturelle de la distance euclidienne pour les familles exponentielles."
+      - type: box
+        title: "Garantie — Validité par construction"
+        tex: "\\mathcal{M} \\text{ est convexe et } \\bar{T}^{(t)} \\in \\text{int}(\\mathcal{M}) \\implies \\Pi_{\\mathcal{M}}^{D_A}\\!\\left(\\bar{T}^{(t)}\\right) \\in \\text{int}(\\mathcal{M}) \\implies \\eta^{(t+1)} = \\nabla A^*(\\mu^{(t+1)}) \\in \\text{int}(\\mathcal{H})"
+      - type: p
+        text: "La convexité de $\\mathcal{M}$ garantit que la projection reste dans l'intérieur, et la bijection $\\nabla A^*$ la ramène automatiquement dans $\\text{int}(\\mathcal{H})$ — sans vérification supplémentaire."
+      - type: callout
+        title: "Intuition géométrique."
+        text: "Travailler dans $\\mathcal{H}$ revient à naviguer dans un espace courbé où les contraintes de validité sont implicites. Travailler dans $\\mathcal{M}$ revient à naviguer dans un espace convexe où toute moyenne reste valide par définition. La divergence de Bregman joue le rôle de distance intrinsèque adaptée à la géométrie de la famille."
+
+  - number: "§ 8"
+    title: "Vitesse de convergence — taux linéaire et information manquante"
+    uses: [info-missing, em-imputation]
+    content:
+      - type: p
+        text: "Autour d'un point fixe $\\eta^\\star$, EM converge *linéairement* (géométriquement). Le taux est déterminé par la matrice de *fraction d'information manquante*."
+      - type: h3
+        text: "Décomposition de l'information observée"
+      - type: p
+        text: "La matrice d'information de Fisher admet la décomposition :"
+      - type: math
+        label: "Décomposition de Fisher"
+        tex: "\\underbrace{\\mathcal{I}_{\\text{obs}}(\\eta)}_{\\ -\\nabla^2 \\ell(\\eta ; \\mathbf{y})} = \\underbrace{\\mathcal{I}_{\\text{comp}}(\\eta)}_{\\ -\\nabla^2 Q} - \\underbrace{\\mathcal{I}_{\\text{manq}}(\\eta)}_{\\ \\text{var. cond. de } T_{\\bar S}}"
+      - type: p
+        text: "La matrice de taux de convergence d'EM est la fraction d'information manquante :"
+      - type: math
+        tex: "R = \\mathcal{I}_{\\text{comp}}^{-1}\\,\\mathcal{I}_{\\text{manq}} = I - \\mathcal{I}_{\\text{comp}}^{-1}\\,\\mathcal{I}_{\\text{obs}}"
+      - type: box
+        title: "Taux de convergence linéaire"
+        tex: "\\|\\eta^{(t+1)} - \\eta^\\star\\| \\leq \\rho(R)\\,\\|\\eta^{(t)} - \\eta^\\star\\| + O(\\|\\cdot\\|^2), \\qquad \\rho(R) = \\text{rayon spectral de } R < 1"
+      - type: h3
+        text: "Interprétation"
+      - type: table
+        headers: ["Régime", "Rayon spectral $\\rho(R)$", "Comportement"]
+        rows:
+          - ["Peu d'information manquante", "$\\rho \\approx 0$", "Convergence quasi-Newton, très rapide"]
+          - ["Fraction modérée", "$\\rho \\approx 0.5$", "Convergence géométrique standard"]
+          - ["Données très partielles ($|\\bar S| \\gg |S|$)", "$\\rho \\to 1$", "Convergence lente — envisager MCEM ou SEM"]
+          - ["Observations complètes ($\\Pi = I$)", "$R = 0$", "Convergence en une itération (M-step exact)"]
+      - type: callout
+        title: "Le coût de l'observation partielle."
+        text: "Plus la projection $\\Pi$ masque de composantes informatives, plus $\\mathcal{I}_{\\text{manq}}$ est grande et plus la convergence ralentit. C'est la traduction spectrale du fait que chaque itération ne récupère qu'une fraction de l'information disponible — l'E-step *hallucine* le reste."
+
+  - number: "§ 9"
+    title: "Synthèse — la carte des garanties"
+    uses: [monotone-em, score-equation, mean-space, bregman, info-missing, natural-domain, conjugate-prior]
+    content:
+      - type: p
+        text: "Les trois propriétés d'EM — monotonie, validité du domaine, vitesse de convergence — sont *indépendantes* et requièrent des conditions distinctes. Le tableau suivant les résume."
+      - type: table
+        headers: ["Propriété", "Condition suffisante", "Mécanisme", "Robustesse"]
+        rows:
+          - ["Montée monotone", "$\\eta^{(t)} \\in \\text{int}(\\mathcal{H})$", "Jensen sur entropie conditionnelle", "Inconditionnelle si domaine respecté"]
+          - ["Point fixe = extremum", "Famille exponentielle minimale", "Équiv. équation de score", "Universelle dans les fam. exp."]
+          - ["Convergence globale", "$\\ell$ strictement concave", "Unicité du point stationnaire", "Garantie si famille minimale + $n$ suffisant"]
+          - ["Validité du domaine", "$\\bar{T}^{(t)} \\in \\text{int}(\\mathcal{M})$ ou EM dans $\\mathcal{M}$", "Convexité de $\\mathcal{M}$", "Par construction si on travaille dans $\\mathcal{M}$"]
+          - ["Vitesse linéaire", "Voisinage de $\\eta^\\star$", "Rayon spectral de $R$", "Taux $\\rho \\to 1$ si données très partielles"]
+      - type: h3
+        text: "Résumé algorithmique — EM stabilisé dans $\\mathcal{M}$"
+      - type: math
+        label: "Algorithme complet"
+        tex: "\\begin{aligned} &\\textbf{Initialiser : } \\mu^{(0)} = \\lambda_0/\\nu_0 \\in \\text{int}(\\mathcal{M}) \\\\ &\\textbf{Répéter jusqu'à convergence :} \\\\ &\\quad \\text{E-step : } \\widetilde{T}_i^{(t)} = \\bigl(T_{S,i},\\ \\mathbb{E}_{\\eta^{(t)}}[T_{\\bar S} \\mid T_{S,i}]\\bigr) \\\\ &\\quad \\text{M-step : } \\mu^{(t+1)} = \\frac{\\lambda_0 + \\sum_i \\widetilde{T}_i^{(t)}}{\\nu_0 + n} \\in \\text{int}(\\mathcal{M}) \\\\ &\\quad \\text{Reparamétrisation : } \\eta^{(t+1)} = \\nabla A^*(\\mu^{(t+1)}) \\in \\text{int}(\\mathcal{H}) \\end{aligned}"
+      - type: callout
+        title: "Le résultat le plus profond."
+        text: "La géométrie d'information de Amari révèle qu'EM est une *double projection alternée* : le E-step projette sur la variété exponentielle (espace des distributions compatibles avec $\\eta$), le M-step projette sur la variété mixte (espace des distributions compatibles avec les moments observés). La convergence et la validité sont les deux faces d'une même structure géométrique."

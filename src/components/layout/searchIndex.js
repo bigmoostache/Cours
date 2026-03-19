@@ -1,11 +1,13 @@
 import chapitre4 from "../../content/chapitre_4.yaml";
 import chapitre5 from "../../content/chapitre_5.yaml";
 import chapitre6 from "../../content/chapitre_6.yaml";
+import chapitre7 from "../../content/chapitre_7.yaml";
 
 const CHAPTERS = [
   { slug: "chapitre-4", data: chapitre4 },
   { slug: "chapitre-5", data: chapitre5 },
   { slug: "chapitre-6", data: chapitre6 },
+  { slug: "chapitre-7", data: chapitre7 },
 ];
 
 /**

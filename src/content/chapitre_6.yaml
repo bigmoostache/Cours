@@ -1,3 +1,4 @@
+chapter: 6
 label: "Inférence Bayésienne · Chapitre 6"
 title: "Observations Éparses,\nNon Appariées, Mixtes"
 subtitle: "Quand les données manquent par structure — certaines portent sur *X* seul, d'autres sur *Y* seul, d'autres sur les deux — les trois blocs de *λ* s'alimentent de façon asynchrone. Trois compteurs *ν* distincts naissent. La conjugaison tient, mais à un prix que ce chapitre quantifie."
@@ -6,6 +7,7 @@ footer_right: "Observations Éparses · Familles Exponentielles"
 sections:
   - number: "§ 1"
     title: "Le problème : observations hétérogènes dans un modèle joint"
+    uses: [joint-suff-stat, suff-stat, exp-family]
     content:
       - type: p
         text: "Au chapitre 5, chaque observation était une paire complète $(x_i, y_i)$. En pratique, ce confort est l'exception. Dans une cohorte clinique, certains patients n'ont qu'une mesure de température $x_i$ sans résultat sérologique ; d'autres ont un titre anticorps $y_j$ sans thermomètre de proximité ; d'autres encore ont les deux. Comment la mise à jour bayésienne se comporte-t-elle lorsque les observations ne renseignent qu'une partie de la statistique suffisante jointe ?"
@@ -27,6 +29,7 @@ sections:
 
   - number: "§ 2"
     title: "La vraisemblance exacte — pourquoi la conjugaison se brise"
+    uses: [conjugate-prior, log-partition, tilted-param, marginal-exit, exp-family]
     content:
       - type: p
         text: "Rappelons la densité jointe du chapitre 5 (§1–§2) avec les trois blocs de paramètres :"
@@ -57,6 +60,7 @@ sections:
 
   - number: "§ 3"
     title: "Le cas η_xy connu — découplage exact"
+    uses: [eta-xy, bayesian-update, lambda, nu, conjugate-prior]
     content:
       - type: p
         text: "La situation se simplifie radicalement si $\\eta_{xy}$ est fixé à une valeur connue $\\eta_{xy}^0$. L'inférence porte alors uniquement sur $(\\eta_x, \\eta_y)$, et le terme perturbateur devient une constante."
@@ -85,6 +89,7 @@ sections:
 
   - number: "§ 4"
     title: "L'approximation des priors produits — formalisation du découplage"
+    uses: [prior-product, bayesian-update, lambda, nu, three-counters, suff-stat]
     content:
       - type: p
         text: "Dans la pratique bayésienne approchée, l'hypothèse qui rétablit la conjugaison est la *factorisation du prior* en trois facteurs indépendants, un par bloc :"
@@ -117,6 +122,7 @@ sections:
 
   - number: "§ 5"
     title: "Les trois compteurs ν — une mémoire différenciée"
+    uses: [three-counters, nu, lambda, fisher-sufficiency, eta-xy]
     content:
       - type: p
         text: "L'asymétrie la plus frappante de la règle découplée est que $\\nu_n^x$, $\\nu_n^y$ et $\\nu_n^{xy}$ croissent à des vitesses différentes selon la composition du dataset."
@@ -150,6 +156,7 @@ sections:
 
   - number: "§ 6"
     title: "Ce que l'approximation ignore — l'information indirecte"
+    uses: [indirect-info, log-partition, eta-xy, prior-product]
     content:
       - type: p
         text: "L'approximation prior-produit a un coût précis : elle néglige l'information sur $\\eta_{xy}$ que portent les observations marginales via la log-partition non linéaire $A_y$. Quantifions ce terme rejeté."
@@ -181,6 +188,7 @@ sections:
 
   - number: "§ 7"
     title: "L'algorithme EM — imputation des statistiques manquantes"
+    uses: [em-imputation, log-partition, tilted-param, bayesian-update, lambda, suff-stat, monotone-em]
     content:
       - type: p
         text: "L'obstruction à la conjugaison vient du terme manquant $T_y(y_i)$ dans la statistique croisée $T_x(x_i) \\otimes T_y(y_i)$ pour une observation de type B. L'algorithme EM rétablit la conjugaison en *imputant* cette valeur manquante par son espérance conditionnelle sous le modèle courant."
@@ -249,6 +257,7 @@ sections:
 
   - number: "§ 8"
     title: "Simulation interactive"
+    uses: [three-counters, nu, lambda, eta-xy, prior-product]
     content:
       - type: p
         text: "La simulation illustre le comportement des trois compteurs $\\nu_n^x$, $\\nu_n^y$, $\\nu_n^{xy}$ et des distributions a posteriori correspondantes, sous l'approximation des priors produits (§4). Le modèle est gaussien avec variances unitaires et prior gaussien $N(0, 1/\\nu_0)$ sur chaque paramètre avec $\\nu_0 = 0.4$."
@@ -266,6 +275,7 @@ sections:
 
   - number: "Synthèse"
     title: "Ce que la structure des données hétérogènes révèle"
+    uses: [three-counters, lambda, marginal-exit, prior-product, em-imputation, eta-xy]
     content:
       - type: table
         headers: ["Objet", "Rôle", "Propriété clé"]

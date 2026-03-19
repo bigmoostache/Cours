@@ -1,0 +1,217 @@
+definitions:
+  - id: exp-family
+    term: "Famille exponentielle"
+    tex: "p(x \\mid \\eta) = h(x)\\,\\exp\\!\\bigl(\\eta^\\top T(x) - A(\\eta)\\bigr)"
+    description: "Distribution dont la densité s'écrit sous forme canonique avec mesure de base, statistique suffisante et paramètre naturel."
+    defined_in: { chapter: 1, section: 1 }
+
+  - id: suff-stat
+    term: "Statistique suffisante $T(x)$"
+    tex: "T(x) : \\mathcal{X} \\to \\mathbb{R}^k"
+    description: "Fonction qui capture toute l'information sur $\\eta$ contenue dans $x$. Deux observations avec le même $T(x)$ sont équivalentes pour l'inférence."
+    defined_in: { chapter: 1, section: 1 }
+
+  - id: nat-param
+    term: "Paramètre naturel $\\eta$"
+    tex: "\\eta \\in \\Omega \\subset \\mathbb{R}^k"
+    description: "Paramètre de la famille exponentielle vivant dans le domaine naturel $\\Omega$. Relié aux paramètres usuels par une bijection."
+    defined_in: { chapter: 1, section: 1 }
+
+  - id: log-partition
+    term: "Log-partition $A(\\eta)$"
+    tex: "A(\\eta) = \\log \\int h(x)\\,e^{\\,\\eta^\\top T(x)}\\,dx"
+    description: "Fonction de normalisation. Ses dérivées donnent les moments : $\\nabla A = \\mathbb{E}[T(x)]$, $\\nabla^2 A = \\mathrm{Var}[T(x)]$."
+    defined_in: { chapter: 1, section: 2 }
+
+  - id: base-measure
+    term: "Mesure de base $h(x)$"
+    tex: "h(x) \\geq 0"
+    description: "Facteur de la densité indépendant de $\\eta$. Détermine le support et la forme de base de la distribution."
+    defined_in: { chapter: 1, section: 1 }
+
+  - id: conjugate-prior
+    term: "Prior conjugué"
+    tex: "p(\\eta \\mid \\lambda_0, \\nu_0) \\propto \\exp\\!\\bigl(\\eta^\\top \\lambda_0 - \\nu_0\\,A(\\eta)\\bigr)"
+    description: "Prior tel que le posterior reste dans la même famille paramétrique. Paramétré par $(\\lambda_0, \\nu_0)$."
+    defined_in: { chapter: 4, section: 3 }
+
+  - id: lambda
+    term: "Mémoire $\\lambda$"
+    tex: "\\lambda_n = \\lambda_0 + \\sum_{i=1}^n T(x_i)"
+    description: "Vecteur qui accumule les statistiques suffisantes. C'est une urne : le prior initialise, chaque observation verse $T(x_i)$."
+    defined_in: { chapter: 4, section: 3 }
+
+  - id: nu
+    term: "Compteur $\\nu$"
+    tex: "\\nu_n = \\nu_0 + n"
+    description: "Poids de la mémoire. $\\nu_0$ = observations fictives a priori, $n$ = observations réelles."
+    defined_in: { chapter: 4, section: 3 }
+
+  - id: shrinkage
+    term: "Structure de shrinkage"
+    tex: "\\frac{\\lambda_n}{\\nu_n} = \\frac{\\nu_0}{\\nu_0+n}\\cdot\\frac{\\lambda_0}{\\nu_0} + \\frac{n}{\\nu_0+n}\\cdot\\bar{T}"
+    description: "L'estimateur bayésien interpole entre prior et données. Quand $n \\to \\infty$, les données dominent."
+    defined_in: { chapter: 4, section: 4 }
+
+  - id: bayesian-update
+    term: "Mise à jour bayésienne"
+    tex: "\\lambda_n = \\lambda_0 + \\sum T(x_i), \\quad \\nu_n = \\nu_0 + n"
+    description: "Toute la complexité bayésienne réduite à deux additions. Le posterior est dans la même famille que le prior."
+    defined_in: { chapter: 4, section: 4 }
+
+  - id: nig
+    term: "Loi Normale-Gamma Inverse"
+    tex: "\\mathcal{NIG}(\\mu_0, \\nu_0, \\alpha_0, \\beta_0)"
+    description: "Prior conjugué de la gaussienne. Encode croyances sur la moyenne ($\\mu_0$) et la variance ($\\alpha_0, \\beta_0$) avec poids $\\nu_0$."
+    defined_in: { chapter: 4, section: 5 }
+
+  - id: fisher-sufficiency
+    term: "Théorème de suffisance de Fisher"
+    tex: "p(\\mathbf{x} \\mid \\eta) = g\\bigl(T(\\mathbf{x}),\\, \\eta\\bigr) \\cdot r(\\mathbf{x})"
+    description: "La vraisemblance ne dépend des données qu'à travers $T(\\mathbf{x})$. Ce vecteur de dimension fixe résume intégralement $n$ observations."
+    defined_in: { chapter: 4, section: 2 }
+
+  - id: eta-xy
+    term: "Paramètre d'interaction $\\eta_{xy}$"
+    tex: "\\eta_{xy} \\in \\mathbb{R}^{k_x \\times k_y}"
+    description: "$= 0$ iff indépendance conditionnelle. Sa norme mesure l'intensité du couplage, son rang la dimensionnalité effective."
+    defined_in: { chapter: 5, section: 2 }
+
+  - id: tilted-param
+    term: "Paramètre incliné $\\eta_y^*(x)$"
+    tex: "\\eta_y^*(x) = \\eta_y + \\eta_{xy}^\\top T_x(x)"
+    description: "Le paramètre naturel de $Y$ décalé par l'observation de $X$. La conditionnelle $p(y|x)$ reste dans la famille de $Y$."
+    defined_in: { chapter: 5, section: 3 }
+
+  - id: joint-suff-stat
+    term: "Statistique suffisante jointe"
+    tex: "T(x,y) = \\bigl(T_x(x),\\; T_y(y),\\; T_x(x) \\otimes T_y(y)\\bigr)"
+    description: "Concatène les statistiques marginales et leur produit tensoriel. Le bloc croisé capture l'interaction."
+    defined_in: { chapter: 5, section: 1 }
+
+  - id: hammersley-clifford
+    term: "Théorème de Hammersley-Clifford"
+    tex: "X_i \\perp\\!\\!\\!\\perp X_j \\mid \\mathbf{x}_{-ij} \\iff \\eta_{ij} = 0"
+    description: "L'annulation d'un paramètre d'interaction est équivalente à une indépendance conditionnelle."
+    defined_in: { chapter: 5, section: 6 }
+
+  - id: three-counters
+    term: "Trois compteurs $\\nu$"
+    tex: "\\nu_n^x = \\nu_0^x + n_x + n_{xy}, \\quad \\nu_n^{xy} = \\nu_0^{xy} + n_{xy}"
+    description: "En données hétérogènes, chaque bloc a son propre compteur. Les paires seules alimentent $\\nu^{xy}$."
+    defined_in: { chapter: 6, section: 5 }
+
+  - id: em-imputation
+    term: "EM — imputation"
+    tex: "\\widetilde{T}_y(x_i) = \\nabla_{\\eta_y} A_y\\!\\bigl(\\eta_y^*(x_i)\\bigr)"
+    description: "L'algorithme EM remplace $T_y(y_i)$ manquant par son espérance conditionnelle. Le gradient de $A$ est l'espérance de $T$."
+    defined_in: { chapter: 6, section: 7 }
+
+  - id: markov-blanket
+    term: "Couverture de Markov $\\partial Y$"
+    tex: "\\partial Y = \\{k : \\eta_{ky} \\neq 0\\}"
+    description: "Ensemble des voisins directs de $Y$ dans le graphe. Conditionner sur $\\partial Y$ suffit : la conditionnelle reste dans la famille."
+    defined_in: { chapter: 5, section: 3 }
+
+  - id: marginal-exit
+    term: "Sortie de famille par marginalisation"
+    tex: "p(x) \\propto h_x(x)\\,\\exp\\!\\bigl(\\eta_x^\\top T_x(x) + A_y(\\eta_y^*(x))\\bigr)"
+    description: "Intégrer $Y$ fait apparaître $A_y(\\eta_y^*(x))$, non linéaire en $T_x$. La marginale sort de la famille — sauf cas polynomial."
+    defined_in: { chapter: 5, section: 4 }
+
+  - id: prior-product
+    term: "Prior produit (mean-field)"
+    tex: "p(\\eta) = p_x(\\eta_x)\\,p_y(\\eta_y)\\,p_{xy}(\\eta_{xy})"
+    description: "Factorisation du prior en blocs indépendants. Rétablit la conjugaison au prix d'ignorer les couplages entre blocs."
+    defined_in: { chapter: 6, section: 4 }
+
+  - id: indirect-info
+    term: "Information indirecte"
+    tex: "\\delta(x_i) = A_y(\\eta_y^*(x_i)) - A_y(\\eta_y)"
+    description: "Information sur $\\eta_{xy}$ portée par les marginales via la log-partition. Ignorée par le prior-produit, récupérée par EM."
+    defined_in: { chapter: 6, section: 6 }
+
+  - id: q-function
+    term: "Fonction Q d'EM"
+    tex: "Q(\\eta \\mid \\eta^{(t)}) = \\eta^\\top \\sum_i \\widetilde{T}_i^{(t)} - n\\,A(\\eta)"
+    description: "Espérance de la log-vraisemblance complète sous les données manquantes imputées. Linéaire en $\\eta$ dans les familles exponentielles."
+    defined_in: { chapter: 7, section: 2 }
+
+  - id: monotone-em
+    term: "Montée monotone d'EM"
+    tex: "\\ell(\\eta^{(t+1)}) \\geq \\ell(\\eta^{(t)})"
+    description: "Chaque itération EM augmente la vraisemblance observée. Convergence garantie vers un point stationnaire."
+    defined_in: { chapter: 7, section: 3 }
+
+  - id: mean-space
+    term: "Espace des moments $\\mathcal{M}$"
+    tex: "\\mathcal{M} = \\{\\mu = \\nabla A(\\eta) : \\eta \\in \\mathrm{int}(\\mathcal{H})\\}"
+    description: "Image de $\\mathcal{H}$ par $\\nabla A$. Convexe et ouvert. Travailler dans $\\mathcal{M}$ garantit la validité du domaine."
+    defined_in: { chapter: 7, section: 7 }
+
+  - id: bregman
+    term: "Divergence de Bregman $D_A$"
+    tex: "D_A(\\mu, \\mu') = A^*(\\mu) - A^*(\\mu') - \\langle \\nabla A^*(\\mu'), \\mu - \\mu'\\rangle"
+    description: "Distance intrinsèque adaptée à la famille exponentielle. Le M-step projeté minimise $D_A$ sur $\\mathcal{M}$."
+    defined_in: { chapter: 7, section: 7 }
+
+  - id: info-missing
+    term: "Fraction d'information manquante"
+    tex: "R = \\mathcal{I}_{\\text{comp}}^{-1}\\,\\mathcal{I}_{\\text{manq}}"
+    description: "Matrice dont le rayon spectral $\\rho(R) < 1$ contrôle la vitesse de convergence d'EM. $\\rho \\to 1$ si les données sont très partielles."
+    defined_in: { chapter: 7, section: 8 }
+
+  - id: natural-domain
+    term: "Domaine naturel $\\mathcal{H}$"
+    tex: "\\mathcal{H} = \\{\\eta : A(\\eta) < \\infty\\}"
+    description: "Ensemble des paramètres naturels pour lesquels la distribution est normalisable. Ouvert et convexe."
+    defined_in: { chapter: 5, section: 2 }
+
+  - id: score-equation
+    term: "Équation de score"
+    tex: "\\nabla_\\eta \\ell(\\eta^\\star) = \\sum_i \\mathbb{E}_{\\eta^\\star}[T(x_i) \\mid y_i] - n\\,\\nabla A(\\eta^\\star) = 0"
+    description: "Condition de stationnarité de la vraisemblance observée. Équivalente à être point fixe d'EM."
+    defined_in: { chapter: 7, section: 4 }
+
+  # ── Cheat-sheets (familles exponentielles) ──────────────────────────
+
+  - id: cs-gaussian
+    term: "Fiche — Gaussienne $\\mathcal{N}(\\mu, \\sigma^2)$"
+    defined_in: { chapter: 1, section: 6 }
+    rows:
+      - ["$T(x)$", "$(x,\\; x^2)$"]
+      - ["$\\eta$", "$(\\mu/\\sigma^2,\\; -1/(2\\sigma^2))$"]
+      - ["$A(\\eta)$", "$-\\eta_1^2/(4\\eta_2) + \\tfrac{1}{2}\\log(-\\pi/\\eta_2)$"]
+      - ["$h(x)$", "$1/\\sqrt{2\\pi}$"]
+      - ["$\\eta \\to (\\mu,\\sigma^2)$", "$\\mu = -\\eta_1/(2\\eta_2),\\quad \\sigma^2 = -1/(2\\eta_2)$"]
+
+  - id: cs-poisson
+    term: "Fiche — Poisson $\\mathrm{Poi}(\\lambda)$"
+    defined_in: { chapter: 1, section: 4 }
+    rows:
+      - ["$T(x)$", "$x$"]
+      - ["$\\eta$", "$\\log \\lambda$"]
+      - ["$A(\\eta)$", "$e^\\eta$"]
+      - ["$h(x)$", "$1/x!$"]
+      - ["$\\eta \\to \\lambda$", "$\\lambda = e^\\eta$"]
+
+  - id: cs-bernoulli
+    term: "Fiche — Bernoulli $\\mathrm{Ber}(p)$"
+    defined_in: { chapter: 1, section: 3 }
+    rows:
+      - ["$T(x)$", "$x$"]
+      - ["$\\eta$", "$\\log(p/(1-p))$ (logit)"]
+      - ["$A(\\eta)$", "$\\log(1+e^\\eta)$"]
+      - ["$h(x)$", "$1$"]
+      - ["$\\eta \\to p$", "$p = \\sigma(\\eta) = 1/(1+e^{-\\eta})$"]
+
+  - id: cs-nig
+    term: "Fiche — Normale-Gamma Inverse $\\mathcal{NIG}$"
+    defined_in: { chapter: 4, section: 5 }
+    rows:
+      - ["Prior", "$p(\\mu,\\sigma^2 \\mid \\mu_0, \\nu_0, \\alpha_0, \\beta_0)$"]
+      - ["$\\lambda_0$", "$(\\nu_0 \\mu_0,\\; -\\nu_0/(2\\sigma_0^2))$"]
+      - ["$\\nu_0$", "Pseudo-observations"]
+      - ["Mise à jour $\\lambda$", "$\\lambda_n = \\lambda_0 + (\\sum x_i,\\; \\sum x_i^2)$"]
+      - ["Mise à jour $\\nu$", "$\\nu_n = \\nu_0 + n$"]
+      - ["Posterior $\\mu$", "$\\mu_n = \\lambda_n^{(1)} \\cdot \\sigma_n^2 / \\nu_n$"]

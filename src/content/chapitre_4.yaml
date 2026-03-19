@@ -1,3 +1,4 @@
+chapter: 4
 label: "Inférence Bayésienne · Chapitre 4"
 title: "Le Prior Conjugué\ndans les Familles Exponentielles"
 subtitle: "De la structure abstraite d'une famille exponentielle jusqu'à l'estimation bayésienne de la température d'un patient fébrile — un fil conducteur unique."
@@ -6,6 +7,7 @@ footer_right: "Prior Conjugué · Familles Exponentielles"
 sections:
   - number: "§ 1"
     title: "La famille exponentielle"
+    uses: [exp-family, suff-stat, nat-param, log-partition, base-measure, cs-poisson, cs-bernoulli]
     content:
       - type: p
         text: "Une distribution appartient à la *famille exponentielle* si sa densité s'écrit sous la forme canonique :"
@@ -26,6 +28,7 @@ sections:
 
   - number: "§ 2"
     title: "Vraisemblance de n observations"
+    uses: [exp-family, suff-stat, fisher-sufficiency]
     content:
       - type: p
         text: "Pour $n$ observations i.i.d., la vraisemblance se factorise élégamment :"
@@ -36,6 +39,7 @@ sections:
 
   - number: "§ 3"
     title: "Construction du prior conjugué joint"
+    uses: [conjugate-prior, lambda, nu, exp-family]
     content:
       - type: p
         text: "On cherche un prior $p(\\eta)$ tel que le posterior reste dans la *même famille paramétrique*. La forme conjuguée naturelle est :"
@@ -58,6 +62,7 @@ sections:
 
   - number: "§ 4"
     title: "La mise à jour bayésienne — deux additions"
+    uses: [bayesian-update, lambda, nu, shrinkage, conjugate-prior]
     content:
       - type: p
         text: "Le posterior s'obtient par le théorème de Bayes :"
@@ -81,6 +86,7 @@ sections:
 
   - number: "§ 5"
     title: "Application : la loi gaussienne"
+    uses: [exp-family, suff-stat, nat-param, log-partition, nig, conjugate-prior, cs-gaussian, cs-nig]
     content:
       - type: p
         text: "On pose $X \\sim \\mathcal{N}(\\mu, \\sigma^2)$. La forme canonique donne :"
@@ -120,6 +126,7 @@ sections:
 
   - number: "§ 6"
     title: "Cas pratique : thermométrie bayésienne"
+    uses: [bayesian-update, lambda, nu, nig, suff-stat, cs-gaussian, cs-nig]
     content:
       - type: p
         text: "On mesure la température frontale d'un patient avec un thermomètre d'incertitude $\\pm 0.5^\\circ$C, et un prior épidémiologique très faible ($\\nu_0 = 0.001$)."
@@ -155,6 +162,7 @@ sections:
 
   - number: "§ 7"
     title: "Simulation interactive"
+    uses: [bayesian-update, nig, suff-stat, nu, lambda, shrinkage]
     content:
       - type: p
         text: "Avant de simuler, détaillons les choix du prior — chaque hyperparamètre encode une croyance physique précise, et leur calibration n'est pas arbitraire."
@@ -197,6 +205,7 @@ sections:
 
   - number: "§ 8"
     title: "Synthèse — ce que la structure révèle"
+    uses: [suff-stat, log-partition, lambda, nu, bayesian-update, shrinkage]
     content:
       - type: p
         text: "La conjugaison dans les familles exponentielles n'est pas une coïncidence algébrique : c'est une conséquence directe du théorème de suffisance. La vraisemblance ne dépend des données qu'à travers $T(x)$ ; le prior conjugué a *la même dépendance fonctionnelle* en $\\eta$ via $A(\\eta)$."

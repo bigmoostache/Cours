@@ -6,6 +6,7 @@ const CHAPTERS = [
   { num: 4, slug: "chapitre-4", title: "Le Prior Conjugué dans les Familles Exponentielles" },
   { num: 5, slug: "chapitre-5", title: "Interactions entre Familles Exponentielles" },
   { num: 6, slug: "chapitre-6", title: "Observations Éparses, Non Appariées, Mixtes" },
+  { num: 7, slug: "chapitre-7", title: "EM : Stabilité et Convergence" },
 ];
 
 export default function Sidebar({ open, onClose, chapters, focusSearch, onSearchFocused }) {
