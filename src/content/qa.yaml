@@ -149,22 +149,53 @@ sections:
 
   - number: "Q 2"
     title: "Couplage cross-type : température (NIG) × état grippal (Bernoulli)"
-    uses: [exp-family, suff-stat, nat-param, eta-xy, tilted-param, conjugate-prior, cs-gaussian, cs-nig, cs-bernoulli]
+    uses: [exp-family, suff-stat, nat-param, eta-xy, tilted-param, conjugate-prior, cs-gaussian, cs-nig, cs-bernoulli, bayesian-update, lambda, nu, shrinkage]
     content:
       - type: h3
         text: "Énoncé du problème"
       - type: p
-        text: "On dispose d'un nœud $X$ gaussien (température frontale, prior NIG) et d'un nœud $Y$ Bernoulli (état grippal, $y \\in \\{0,1\\}$, prior conjugué Beta). On veut encoder : *la grippe provoque la fièvre*. Comment construire le couplage dans le cadre exponentiel ?"
+        text: "On modélise un patient par deux variables : sa température frontale $X$ (continue, gaussienne) et son état grippal $Y$ (binaire, $y \\in \\{0,1\\}$, Bernoulli). On dispose de mesures de température et éventuellement d'un test de grippe. L'objectif : encoder la relation *la grippe provoque la fièvre* dans le graphe d'inférence, calibrer les priors depuis les connaissances cliniques, et dérouler la mise à jour bayésienne complète."
 
       - type: h3
-        text: "Les deux familles"
+        text: "Les deux familles et leurs priors conjugués"
       - type: table
         headers: ["Nœud", "Famille", "$T(\\cdot)$", "$\\eta$", "Prior conjugué"]
         rows:
-          - ["$X$ (température)", "Gaussienne", "$(x,\\, x^2)$", "$(\\mu/\\sigma^2,\\; -1/(2\\sigma^2))$", "NIG"]
-          - ["$Y$ (grippe)", "Bernoulli", "$y$", "$\\log\\frac{p}{1-p}$", "Beta"]
+          - ["$X$ (température)", "Gaussienne", "$(x,\\, x^2)$", "$(\\mu/\\sigma^2,\\; -1/(2\\sigma^2))$", "NIG$(\\mu_0, \\nu_0, \\alpha_0, \\beta_0)$"]
+          - ["$Y$ (grippe)", "Bernoulli", "$y$", "$\\log\\frac{p}{1-p}$", "Beta$(a_0, b_0)$"]
       - type: p
         text: "Le couplage agit sur les *observations* $(x, y)$, pas sur les priors. La statistique suffisante de $Y$ est *scalaire* ($T_Y(y) = y \\in \\{0,1\\}$), donc $\\eta_{XY} \\in \\mathbb{R}^{2 \\times 1}$ — un vecteur colonne, pas une matrice carrée."
+
+      - type: h3
+        text: "Calibration du prior NIG — température"
+      - type: p
+        text: "Le prior NIG$(\\mu_0, \\nu_0, \\alpha_0, \\beta_0)$ encode quatre croyances sur la température du patient *avant toute mesure*. Reprenons le découplage du Chapitre 4, §7 :"
+      - type: table
+        headers: ["Hyperparamètre", "Valeur", "Signification clinique"]
+        rows:
+          - ["$\\mu_0 = 36.8^\\circ$C", "36.8", "Température frontale normale d'un adulte"]
+          - ["$\\nu_0 = 10^{-3}$", "0.001", "Poids du prior sur $\\mu$ — quasi-impropre, les données priment"]
+          - ["$\\alpha_0 = 3$", "3", "Pseudo-observations pour $\\sigma^2$ (prior modérément informatif)"]
+          - ["$\\beta_0 = 0.1875$", "0.1875", "Ancre $\\sigma^2$ sur $\\sigma_{\\text{inst}}^2 = 0.0625$ (thermomètre $\\pm 0.5^\\circ$C)"]
+      - type: p
+        text: "La mémoire initiale en paramètres naturels est $\\lambda_0^X = \\nu_0 \\cdot (\\mu_0/\\sigma_0^2,\\, -1/(2\\sigma_0^2))^\\top$, un vecteur quasi-nul vu $\\nu_0 \\to 0$. Le prior sur $\\sigma^2$ est indépendant : $\\text{InvGamma}(\\alpha_0, \\beta_0)$ avec mode $\\beta_0/(\\alpha_0+1) = 0.047$, soit $\\sigma \\approx 0.22^\\circ$C — cohérent avec l'incertitude instrument."
+
+      - type: h3
+        text: "Calibration du prior Beta — grippe"
+      - type: p
+        text: "Le prior Beta$(a_0, b_0)$ encode la croyance sur la probabilité de base $p$ d'avoir la grippe, *avant toute observation*. Dans le formalisme conjugué, $\\lambda_0^Y = (a_0 - 1,\\, b_0 - 1)$ et $\\nu_0^Y = a_0 + b_0 - 2$ (nombre de pseudo-observations)."
+      - type: table
+        headers: ["Hyperparamètre", "Valeur", "Signification clinique"]
+        rows:
+          - ["$a_0 = 1.3$", "1.3", "Encode une prévalence a priori $\\approx 0.3$ (saison grippale)"]
+          - ["$b_0 = 2.7$", "2.7", "Complément : $1 - 0.3 = 0.7$"]
+          - ["$a_0 + b_0 = 4$", "4", "Poids du prior : équivalent à 2 pseudo-observations"]
+          - ["$a_0/(a_0+b_0)$", "0.325", "Moyenne a priori de la probabilité de grippe"]
+      - type: p
+        text: "Un prior faible ($a_0 + b_0$ petit) est approprié : la prévalence de la grippe varie selon la saison, la population, le contexte. Avec $a_0 + b_0 = 4$, deux observations suffisent à dominer le prior."
+      - type: callout
+        title: "Interprétation des hyperparamètres Beta."
+        text: "$a_0 - 1$ est le nombre de pseudo-observations de grippe, $b_0 - 1$ le nombre de pseudo-observations saines. Le mode a priori est $(a_0 - 1)/(a_0 + b_0 - 2) = 0.15$ — plus bas que la moyenne $0.325$ car la Beta$(1.3, 2.7)$ est asymétrique à droite. En pratique, le mode est moins utile que la moyenne pour les priors faibles."
 
       - type: h3
         text: "Construction de $\\eta_{XY}$"
@@ -181,6 +212,19 @@ sections:
         text: "Un seul produit, $\\delta \\cdot x \\cdot y$. Quand $y = 0$ (pas de grippe), le terme disparaît. Quand $y = 1$ (grippe), il ajoute $\\delta \\cdot x$ à l'exposant — la température $x$ module directement la vraisemblance de la grippe."
 
       - type: h3
+        text: "Identification de $\\delta$ depuis les données cliniques"
+      - type: p
+        text: "On veut que la grippe ($y = 1$) décale la température de $\\delta_{\\text{fièvre}} \\approx 1.7^\\circ$C. Puisque $\\mathbb{E}[X \\mid y=1] - \\mathbb{E}[X \\mid y=0] = \\delta\\,\\sigma^2$, on a :"
+      - type: math
+        label: "Identification de $\\delta$"
+        tex: "\\delta = \\frac{\\delta_{\\text{fièvre}}}{\\sigma^2} = \\frac{1.7}{0.0625} \\approx 27.2"
+      - type: p
+        text: "Avec $\\sigma^2 = \\sigma_{\\text{inst}}^2 = 0.0625$ (thermomètre $\\pm 0.5^\\circ$C). On peut aussi calibrer depuis l'autre direction : si on veut qu'à $x = 39^\\circ$C le log-odds de grippe augmente de $+4$ (probabilité $\\approx 0.3 \\to 0.85$), alors $\\delta \\times (39 - 36.8) \\approx 4$, soit $\\delta \\approx 1.8$. Les deux calibrations donnent des $\\delta$ différents car elles encodent des hypothèses différentes sur $\\sigma^2$."
+      - type: callout
+        title: "Un seul $\\delta$, deux lectures."
+        text: "Le $\\delta$ du clinicien (« la grippe donne $+1.7^\\circ$C de fièvre ») et le $\\delta$ du logisticien (« un degré de plus multiplie les odds de grippe par $e^\\delta$ ») sont *le même paramètre*. La régression logistique et le modèle clinique ne sont pas deux modèles — c'est la même densité jointe lue depuis les deux conditionnelles."
+
+      - type: h3
         text: "Conditionnelle $p(y \\mid x)$ — la grippe sachant la température"
       - type: p
         text: "Le paramètre incliné de $Y$ sachant $x$ est :"
@@ -188,11 +232,7 @@ sections:
         label: "Paramètre incliné de Y"
         tex: "\\eta_Y^*(x) = \\eta_Y + \\eta_{XY}^\\top T_X(x) = \\log\\frac{p}{1-p} + \\delta\\, x"
       - type: p
-        text: "C'est une *régression logistique* : la probabilité de grippe sachant la température est :"
-      - type: math
-        tex: "p(y = 1 \\mid x) = \\sigma\\!\\left(\\log\\frac{p}{1-p} + \\delta\\, x\\right)"
-      - type: p
-        text: "où $\\sigma$ est la sigmoïde. Avec des valeurs cliniques réalistes : prévalence de base $p_0 = 0.3$ (soit $\\eta_Y \\approx -0.85$), et $\\delta$ choisi pour qu'à $x = 39^\\circ$C la probabilité de grippe passe à $\\approx 0.65$."
+        text: "C'est une *régression logistique* : la probabilité de grippe sachant la température est $p(y=1 \\mid x) = \\sigma(\\eta_Y + \\delta\\, x)$ où $\\sigma$ est la sigmoïde."
 
       - type: h3
         text: "Conditionnelle $p(x \\mid y)$ — la température sachant la grippe"
@@ -206,10 +246,10 @@ sections:
       - type: math
         tex: "\\mathbb{E}[X \\mid y] = \\mu + \\delta\\,\\sigma^2\\, y"
       - type: p
-        text: "Puisque $y \\in \\{0,1\\}$, c'est un *saut discret* : le patient sain a une température centrée en $\\mu$, le patient grippal en $\\mu + \\delta\\,\\sigma^2$. Avec $\\sigma^2 \\approx 0.16$ (incertitude instrument $\\pm 0.5^\\circ$C) et $\\delta$ tel que $\\delta\\,\\sigma^2 \\approx 1.7^\\circ$C, on obtient le décalage clinique attendu."
+        text: "Puisque $y \\in \\{0,1\\}$, c'est un *saut discret* : le patient sain a une température centrée en $\\mu$, le patient grippal en $\\mu + \\delta\\,\\sigma^2 \\approx \\mu + 1.7^\\circ$C."
 
       - type: h3
-        text: "L'asymétrie des effets — un seul $\\delta$, deux amplitudes très différentes"
+        text: "L'asymétrie des effets"
       - type: p
         text: "Le couplage est symétrique dans $\\eta_{XY}$ — un seul paramètre $\\delta$ — mais les *effets* sont asymétriques. C'est la structure des familles qui crée cette asymétrie, pas le couplage lui-même."
       - type: p
@@ -221,12 +261,109 @@ sections:
         text: "La grippe est une cause *forte et spécifique* de fièvre (la plupart des grippés ont de la fièvre). Mais la fièvre est un signe *faible et non spécifique* de grippe (beaucoup de fébriles n'ont pas la grippe). Cette asymétrie émerge de la géométrie des familles : la Bernoulli agit comme un interrupteur discret sur la Gaussienne (saut net de $\\delta\\sigma^2$), tandis que la Gaussienne agit comme un modulateur continu sur la Bernoulli via la sigmoïde (compression logarithmique). Un seul paramètre $\\delta$ capture les deux directions avec les bonnes proportions."
 
       - type: h3
-        text: "Identification des paramètres depuis les données cliniques"
+        text: "Mise à jour bayésienne — les trois blocs de $\\lambda$"
       - type: p
-        text: "On peut calibrer $\\delta$ et $\\eta_Y$ directement depuis les connaissances cliniques. La prévalence de base $\\pi_0 = 0.3$ fixe $\\eta_Y = \\log(0.3/0.7) \\approx -0.85$. L'écart de température moyen en cas de grippe $\\delta_{\\text{fièvre}} \\approx 1.7^\\circ$C impose :"
+        text: "La mise à jour conjuguée du modèle joint accumule trois blocs de statistiques suffisantes (Ch. 5, §7) :"
+      - type: box
+        title: "Règle de mise à jour — modèle joint température × grippe"
+        tex: "\\lambda_n = \\begin{pmatrix} \\lambda_0^{(X)} + \\sum_i T_X(x_i) \\\\[4pt] \\lambda_0^{(Y)} + \\sum_j T_Y(y_j) \\\\[4pt] \\lambda_0^{(XY)} + \\sum_k T_X(x_k)\\, T_Y(y_k) \\end{pmatrix}"
+      - type: table
+        headers: ["Bloc", "Contenu concret", "Information portée"]
+        rows:
+          - ["$\\lambda^{(X)}$", "$\\sum_i (x_i,\\, x_i^2)^\\top$", "Températures observées → infère $(\\mu, \\sigma^2)$"]
+          - ["$\\lambda^{(Y)}$", "$\\sum_j y_j$ (nombre de grippés)", "Tests de grippe → infère $p$"]
+          - ["$\\lambda^{(XY)}$", "$\\sum_k (x_k\\, y_k,\\, x_k^2\\, y_k)^\\top$", "Paires observées → infère $\\delta$"]
+      - type: p
+        text: "Chaque bloc a son propre compteur $\\nu$ : $\\nu^{(X)} = \\nu_0^X + n_x$, $\\nu^{(Y)} = \\nu_0^Y + n_y$, $\\nu^{(XY)} = \\nu_0^{XY} + n_{xy}$. Les trois compteurs sont indépendants car on peut observer $X$ sans $Y$ (mesurer la température sans test de grippe), $Y$ sans $X$ (test de grippe sans thermomètre), ou les deux ensemble."
+      - type: callout
+        title: "Observations partielles."
+        text: "C'est un point crucial en pratique. On mesure souvent la température ($n_x = 3$) sans faire de test de grippe ($n_y = 0$), ou on apprend qu'un collègue est malade ($n_y = 1$) sans avoir sa température. Seules les observations *appariées* — température + résultat du test pour le même patient — alimentent $\\lambda^{(XY)}$ et informent le couplage $\\delta$."
+
+      - type: h3
+        text: "Propagation EM dans le graphe couplé"
+      - type: p
+        text: "Quand $Y$ n'est pas observé (pas de test de grippe), on ne peut pas mettre à jour $\\lambda^{(Y)}$ directement. L'EM supplée : il itère entre estimer l'état grippal probable et mettre à jour la température."
+      - type: p
+        text: "**E-step** : étant donné l'estimation courante $\\hat{\\eta}_X = (\\hat\\mu/\\hat\\sigma^2,\\, -1/(2\\hat\\sigma^2))$, le paramètre incliné de $Y$ est :"
       - type: math
-        label: "Identification de $\\delta$ depuis les paramètres cliniques"
-        tex: "\\delta = \\frac{\\delta_{\\text{fièvre}}}{\\sigma^2} = \\frac{1.7}{0.16} \\approx 10.6"
+        tex: "\\hat{\\eta}_Y^* = \\eta_Y + \\delta\\, \\hat\\mu/\\hat\\sigma^2 \\cdot \\hat\\sigma^2 = \\eta_Y + \\delta\\, \\hat\\mu"
+      - type: p
+        text: "La probabilité estimée de grippe est donc $\\hat{p} = \\sigma(\\eta_Y + \\delta\\,\\hat\\mu)$. Plus la température estimée est élevée, plus la probabilité de grippe est forte."
+      - type: p
+        text: "**M-step** : cette estimation $\\hat{p}$ incline en retour le prior de $X$. Le paramètre incliné de $X$ sachant l'estimation de $Y$ est :"
+      - type: math
+        tex: "\\hat{\\eta}_X^* = \\eta_X + \\delta\\, \\hat{p} \\cdot (1,\\, 0)^\\top"
+      - type: p
+        text: "La moyenne de $X$ est tirée vers $\\mu + \\delta\\,\\sigma^2\\,\\hat{p}$. Si $\\hat{p} \\approx 0.8$ (grippe probable), la température attendue monte de $\\approx 1.4^\\circ$C. C'est un *shrinkage croisé* : les deux nœuds se rapprochent mutuellement, chacun dans sa propre géométrie."
+      - type: p
+        text: "L'itération converge vers un point fixe où les deux estimations sont mutuellement cohérentes : la température explique la grippe qui explique la température. Avec les données, le point fixe est unique (la log-vraisemblance jointe est concave en $\\eta$ dans les familles exponentielles)."
+      - type: callout
+        title: "L'EM comme dialogue entre les familles."
+        text: "À chaque itération, la Gaussienne envoie un résumé scalaire (la température estimée $\\hat\\mu$) à la Bernoulli via le tilt $\\delta\\,\\hat\\mu$. La Bernoulli répond par sa probabilité $\\hat{p}$ qui retilte la Gaussienne de $\\delta\\,\\hat{p}$. Les deux parlent des langages différents — degrés Celsius et probabilités — mais $\\delta$ les traduit l'un en l'autre."
+
+      - type: h3
+        text: "Scénario clinique complet"
+      - type: p
+        text: "Déroulons un cas concret avec les valeurs calibrées ci-dessus."
+      - type: h3
+        text: "État initial — priors"
+      - type: table
+        headers: ["Nœud", "Prior", "Interprétation"]
+        rows:
+          - ["$X$", "NIG$(36.8,\\; 10^{-3},\\; 3,\\; 0.1875)$", "Temp. $\\approx 36.8^\\circ$C, quasi aucun poids"]
+          - ["$Y$", "Beta$(1.3,\\; 2.7)$", "Grippe $\\approx 30\\%$ probable (saison grippale, prior faible)"]
+          - ["Couplage", "$\\delta \\approx 27.2$, $\\lambda_0^{(XY)} = 0$", "Grippe $\\Rightarrow$ +1.7°C, pas de paires observées"]
+      - type: h3
+        text: "Étape 1 — trois mesures de température, pas de test de grippe"
+      - type: p
+        text: "On mesure $x_1 = 38.2$, $x_2 = 38.6$, $x_3 = 38.1$. Mise à jour de $\\lambda^{(X)}$ uniquement :"
+      - type: math
+        tex: "\\lambda_3^{(X)} = \\lambda_0^X + \\begin{pmatrix} 114.9 \\\\ 4400.85 \\end{pmatrix}, \\quad \\nu_3^X = 0.001 + 3 = 3.001"
+      - type: p
+        text: "Le posterior NIG donne $\\hat\\mu \\approx 38.3^\\circ$C, $\\hat\\sigma \\approx 0.22^\\circ$C (ancré par $\\beta_0$). Le patient est clairement fébrile."
+      - type: p
+        text: "**Pas de test de grippe** → $\\lambda^{(Y)}$ et $\\lambda^{(XY)}$ sont inchangés. Mais l'EM peut propager : avec $\\hat\\mu = 38.3$, le tilt sur $Y$ donne :"
+      - type: math
+        tex: "\\hat{\\eta}_Y^* = \\underbrace{-0.85}_{\\text{log-odds a priori}} + 27.2 \\times 38.3 = 1040.9"
+      - type: p
+        text: "C'est un log-odds *énorme* — la sigmoïde donne $\\hat{p} \\approx 1$. Problème : le $\\delta$ est calibré pour un décalage de $+1.7^\\circ$C, mais ici le tilt porte sur la température *absolue*, pas sur l'écart à la normale. Le modèle tel quel est mal centré."
+      - type: callout
+        title: "Centrage du couplage."
+        text: "Le terme $\\delta \\cdot x \\cdot y$ couple la température *absolue* au log-odds. Pour que le couplage encode le *décalage* par rapport à la normale, il faut centrer : utiliser $\\phi_X(x) = x - \\mu_0$ comme statistique de couplage (Ch. 5, §2, statistiques de couplage libres). Le tilt devient $\\delta\\,(x - 36.8)\\,y$ et le log-odds incliné est $\\eta_Y + \\delta\\,(\\hat\\mu - 36.8) = -0.85 + 27.2 \\times 1.5 = 40.0$ — encore très haut (grippe quasi-certaine), mais au moins proportionnel au *signal clinique* (l'écart à la normale), pas à un artefact de l'échelle Celsius."
+      - type: h3
+        text: "Étape 2 — un test de grippe positif"
+      - type: p
+        text: "On observe $y = 1$ (test positif). Mise à jour de $\\lambda^{(Y)}$ :"
+      - type: math
+        tex: "a_1 = a_0 + 1 = 2.3, \\quad b_1 = b_0 = 2.7 \\quad \\Rightarrow \\quad \\hat{p} = \\frac{a_1}{a_1 + b_1} = 0.46"
+      - type: p
+        text: "La moyenne posterior de $p$ passe de $0.325$ à $0.46$ — une augmentation modérée car le prior Beta$(1.3, 2.7)$ avait un poids de 2 pseudo-observations. Avec $a_0 + b_0$ plus petit (prior plus vague), un seul test positif aurait un effet plus marqué."
+      - type: p
+        text: "Comme cette observation est *aussi* appariée avec les mesures de température ($x \\approx 38.3$, $y = 1$), elle alimente le bloc croisé :"
+      - type: math
+        tex: "\\lambda_1^{(XY)} = 0 + (38.3 \\times 1,\\; 38.3^2 \\times 1)^\\top = (38.3,\\; 1466.9)^\\top"
+      - type: p
+        text: "Ce bloc informe sur $\\delta$ : il confirme que fièvre et grippe covarient positivement."
+
+      - type: h3
+        text: "Étape 3 — effet retour sur la température"
+      - type: p
+        text: "Le test positif ($y = 1$) incline le paramètre de $X$ via $\\eta_{XY}$ :"
+      - type: math
+        tex: "\\hat{\\eta}_X^{*(1)} = \\eta_X^{(1)} + \\delta \\times 1 = \\eta_X^{(1)} + 27.2"
+      - type: p
+        text: "Cela ajoute $\\delta\\,\\sigma^2 \\approx 1.7^\\circ$C à la moyenne postérieure de $X$. Concrètement : sachant que le patient *a* la grippe, la température attendue n'est plus $38.3^\\circ$C (estimation pure des données) mais $\\approx 38.3 + \\text{correction}$ — le diagnostic grippal *confirme* la fièvre élevée et réduit la probabilité que les mesures soient un artefact."
+      - type: p
+        text: "L'effet est surtout visible sur la *variance* postérieure : savoir la cause de la fièvre réduit l'incertitude sur la température vraie. Sans diagnostic, $\\sigma^2$ capte à la fois la variabilité instrument *et* l'incertitude sur l'état grippal. Avec le diagnostic, seule la variabilité instrument reste."
+
+      - type: h3
+        text: "Bilan du scénario"
+      - type: table
+        headers: ["Étape", "Observation", "$\\hat\\mu$", "$\\hat{p}$", "Information gagnée"]
+        rows:
+          - ["Prior", "—", "$36.8^\\circ$C", "0.33", "Croyances cliniques initiales"]
+          - ["3 mesures", "$38.2, 38.6, 38.1$", "$38.3^\\circ$C", "$0.33 \\to \\text{EM} \\to \\approx 1$", "Fièvre confirmée → grippe très probable (EM)"]
+          - ["Test grippe +", "$y = 1$", "$38.3 + 1.7^\\circ$C", "$0.46$", "Diagnostic confirme fièvre, réduit l'incertitude"]
 
       - type: h3
         text: "Normalisabilité"
@@ -239,7 +376,9 @@ sections:
         headers: ["Aspect", "Valeur"]
         rows:
           - ["$\\eta_{XY}$", "$(\\delta,\\; 0)^\\top$, vecteur $2 \\times 1$"]
-          - ["$\\delta > 0$", "Force du couplage (unique paramètre), $\\approx 10.6$"]
+          - ["$\\delta > 0$", "Force du couplage (unique paramètre), $\\approx 27.2$"]
+          - ["Prior $X$", "NIG$(36.8,\\, 10^{-3},\\, 3,\\, 0.1875)$ — température, prior quasi-impropre sur $\\mu$"]
+          - ["Prior $Y$", "Beta$(1.3,\\, 2.7)$ — grippe, prévalence $\\approx 30\\%$, prior faible"]
           - ["$p(y \\mid x)$", "Bernoulli, log-odds $= \\eta_Y + \\delta\\, x$ (régression logistique)"]
           - ["$p(x \\mid y)$", "Gaussienne, $\\mu \\to \\mu + \\delta\\sigma^2 y$ (saut discret si grippe)"]
           - ["Grippe $\\to$ fièvre", "Fort : saut de $+1.7^\\circ$C, discret et spécifique"]
