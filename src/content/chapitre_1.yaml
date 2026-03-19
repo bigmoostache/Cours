@@ -208,7 +208,7 @@ sections:
 
   - number: "§ 8"
     title: "Gamma et ses cas particuliers"
-    uses: [exp-family, suff-stat, nat-param, log-partition]
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-gamma]
     content:
       - type: p
         text: "La loi Gamma $\\mathrm{Gamma}(\\alpha, \\beta)$ modélise des quantités strictement positives (temps, variances, précisions). $X > 0$ :"
@@ -237,7 +237,7 @@ sections:
 
   - number: "§ 9"
     title: "Tableau récapitulatif"
-    uses: [exp-family, suff-stat, nat-param, log-partition, base-measure, cs-bernoulli, cs-beta, cs-poisson, cs-gaussian, cs-cat, cs-dirichlet]
+    uses: [exp-family, suff-stat, nat-param, log-partition, base-measure, cs-bernoulli, cs-beta, cs-poisson, cs-gaussian, cs-cat, cs-dirichlet, cs-gamma]
     content:
       - type: p
         text: "Toutes ces distributions partagent la même structure — seuls les ingrédients changent :"

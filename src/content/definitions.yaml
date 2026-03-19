@@ -255,3 +255,15 @@ definitions:
       - ["Mise à jour $\\lambda$", "$\\lambda_n = \\lambda_0 + (\\sum x_i,\\; \\sum x_i^2)$"]
       - ["Mise à jour $\\nu$", "$\\nu_n = \\nu_0 + n$"]
       - ["Posterior $\\mu$", "$\\mu_n = \\lambda_n^{(1)} \\cdot \\sigma_n^2 / \\nu_n$"]
+
+  - id: cs-gamma
+    term: "Fiche — Gamma $\\mathrm{Gamma}(\\alpha, \\beta)$"
+    defined_in: { chapter: 1, section: 8 }
+    rows:
+      - ["$T(x)$", "$(\\log x,\\; x)$"]
+      - ["$\\eta$", "$(\\alpha - 1,\\; -\\beta)$"]
+      - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1+1) - (\\eta_1+1)\\log(-\\eta_2)$"]
+      - ["$h(x)$", "$1/x$"]
+      - ["$\\eta \\to (\\alpha,\\beta)$", "$\\alpha = \\eta_1 + 1,\\quad \\beta = -\\eta_2$"]
+      - ["Moyenne", "$\\mathbb{E}[X] = \\alpha/\\beta$"]
+      - ["Cas part.", "Exp($\\lambda$) = Gamma($1, \\lambda$), $\\chi^2_k$ = Gamma($k/2, 1/2$)"]
