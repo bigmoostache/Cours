@@ -132,9 +132,8 @@ function runEM(nodes, edges, maxIter = 50, tol = 1e-6) {
 
 // ── Graph Visualization (D3 Force) ──────────────────────────────────
 
-function GraphCanvas({ nodes, edges, selected, onSelect, onMove }) {
+function GraphCanvas({ nodes, edges, selected, selType }) {
   const svgRef = useRef(null);
-  const simRef = useRef(null);
   const width = 600, height = 400;
 
   useEffect(() => {
@@ -143,46 +142,48 @@ function GraphCanvas({ nodes, edges, selected, onSelect, onMove }) {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    // Defs for arrowheads
-    svg.append("defs").append("marker")
-      .attr("id", "arrow").attr("viewBox", "0 -5 10 10")
-      .attr("refX", 28).attr("refY", 0)
-      .attr("markerWidth", 6).attr("markerHeight", 6)
-      .attr("orient", "auto")
-      .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#c8bfb0");
-
     const g = svg.append("g");
 
-    // Zoom
-    svg.call(d3.zoom().scaleExtent([0.3, 3]).on("zoom", (e) => {
-      g.attr("transform", e.transform);
-    }));
+    // Force simulation — runs once to compute layout, then stops
+    const simNodes = nodes.map(n => ({ ...n }));
+    const nodeMap = new Map(simNodes.map(n => [n.id, n]));
+    const simEdges = edges.map(e => ({
+      source: nodeMap.get(e.source),
+      target: nodeMap.get(e.target),
+      id: e.id,
+    })).filter(e => e.source && e.target);
 
-    // Links
-    const link = g.selectAll(".graph-link")
-      .data(edges, d => d.id)
+    const sim = d3.forceSimulation(simNodes)
+      .force("link", d3.forceLink(simEdges).id(d => d.id).distance(120))
+      .force("charge", d3.forceManyBody().strength(-300))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collision", d3.forceCollide(40))
+      .stop();
+
+    // Run simulation synchronously
+    for (let i = 0; i < 120; i++) sim.tick();
+
+    // Draw links
+    g.selectAll(".graph-link")
+      .data(simEdges)
       .join("line")
-      .attr("class", "graph-link")
-      .attr("stroke", d => d.id === selected ? "#8b2e12" : "#c8bfb0")
-      .attr("stroke-width", d => d.id === selected ? 3 : 1.5)
-      .on("click", (e, d) => { e.stopPropagation(); onSelect(d.id, "edge"); });
+      .attr("stroke", d => (selType === "edge" && d.id === selected) ? "#8b2e12" : "#c8bfb0")
+      .attr("stroke-width", d => (selType === "edge" && d.id === selected) ? 3 : 1.5)
+      .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
 
-    // Node groups
+    // Draw nodes
     const node = g.selectAll(".graph-node")
-      .data(nodes, d => d.id)
+      .data(simNodes)
       .join("g")
-      .attr("class", "graph-node")
-      .attr("cursor", "grab")
-      .on("click", (e, d) => { e.stopPropagation(); onSelect(d.id, "node"); });
+      .attr("transform", d => `translate(${d.x},${d.y})`);
 
-    // Circle
     node.append("circle")
       .attr("r", 22)
       .attr("fill", d => d.family === "nig" ? "#fdf5f2" : "#f2f5fd")
-      .attr("stroke", d => d.id === selected ? "#8b2e12" : "#4a4540")
-      .attr("stroke-width", d => d.id === selected ? 3 : 1.5);
+      .attr("stroke", d => (selType === "node" && d.id === selected) ? "#8b2e12" : "#4a4540")
+      .attr("stroke-width", d => (selType === "node" && d.id === selected) ? 3 : 1.5);
 
-    // Label
     node.append("text")
       .attr("text-anchor", "middle")
       .attr("dy", "0.35em")
@@ -191,56 +192,20 @@ function GraphCanvas({ nodes, edges, selected, onSelect, onMove }) {
       .attr("fill", "#1a1714")
       .text(d => d.family === "nig" ? "𝒩" : "Dir");
 
-    // Obs count
+    // Node ID label below
     node.append("text")
       .attr("text-anchor", "middle")
-      .attr("dy", "32")
+      .attr("dy", "36")
       .attr("font-family", "'JetBrains Mono', monospace")
       .attr("font-size", "9px")
       .attr("fill", "#8a837a")
-      .text(d => d.obs.length > 0 ? `n=${d.obs.length}` : "");
-
-    // Click background to deselect
-    svg.on("click", () => onSelect(null, null));
-
-    // Force simulation
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-    const simEdges = edges.map(e => ({
-      source: nodeMap.get(e.source),
-      target: nodeMap.get(e.target),
-      id: e.id,
-    })).filter(e => e.source && e.target);
-
-    const sim = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(simEdges).id(d => d.id).distance(120))
-      .force("charge", d3.forceManyBody().strength(-200))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide(35))
-      .on("tick", () => {
-        link
-          .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
-          .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
-        node.attr("transform", d => `translate(${d.x},${d.y})`);
+      .text(d => {
+        const obs = d.obs?.length || 0;
+        return obs > 0 ? `${d.id} (n=${obs})` : d.id;
       });
 
-    simRef.current = sim;
-
-    // Drag
-    const drag = d3.drag()
-      .on("start", (e, d) => {
-        if (!e.active) sim.alphaTarget(0.3).restart();
-        d.fx = d.x; d.fy = d.y;
-      })
-      .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
-      .on("end", (e, d) => {
-        if (!e.active) sim.alphaTarget(0);
-        d.fx = null; d.fy = null;
-        onMove(d.id, d.x, d.y);
-      });
-    node.call(drag);
-
-    return () => { sim.stop(); };
-  }, [nodes, edges, selected]);
+    return () => {};
+  }, [nodes, edges, selected, selType]);
 
   return (
     <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`}
@@ -408,25 +373,17 @@ export default function GraphSimulator() {
   const [selected, setSelected] = useState(null);
   const [selType, setSelType] = useState(null);
   const [emResult, setEmResult] = useState(null);
-  const [linking, setLinking] = useState(null); // id of first node when adding edge
+
+  const addEdge = (srcId, tgtId) => {
+    const existing = edges.find(e => e.id === eid(srcId, tgtId));
+    if (!existing && srcId !== tgtId) {
+      setEdges(prev => [...prev, makeEdge(srcId, tgtId)]);
+    }
+  };
 
   const handleSelect = useCallback((id, type) => {
-    if (linking && type === "node" && id !== linking) {
-      // Complete edge creation
-      const existingEdge = edges.find(e => e.id === eid(linking, id));
-      if (!existingEdge) {
-        setEdges(prev => [...prev, makeEdge(linking, id)]);
-      }
-      setLinking(null);
-      return;
-    }
     setSelected(id);
     setSelType(type);
-    setLinking(null);
-  }, [linking, edges]);
-
-  const handleMove = useCallback((id, x, y) => {
-    setNodes(prev => prev.map(n => n.id === id ? { ...n, x, y } : n));
   }, []);
 
   const addNode = (family) => {
@@ -471,11 +428,6 @@ export default function GraphSimulator() {
       <div className="sim-toolbar">
         <button onClick={() => addNode("nig")}>+ 𝒩 Gaussienne</button>
         <button onClick={() => addNode("dir")}>+ Dir Dirichlet</button>
-        <button className={linking ? "sim-btn-active" : ""}
-          onClick={() => setLinking(linking ? null : selected)}
-          disabled={!selected || selType !== "node"}>
-          {linking ? "Cliquer le 2e nœud..." : "⟷ Lier"}
-        </button>
         <div className="sim-toolbar-sep" />
         <button className="sim-btn-play" onClick={runEMSim}
           disabled={nodes.length === 0}>
@@ -489,8 +441,49 @@ export default function GraphSimulator() {
       {/* Main area */}
       <div className="sim-main">
         <div className="sim-graph-area">
-          <GraphCanvas nodes={nodes} edges={edges} selected={selected}
-            onSelect={handleSelect} onMove={handleMove} />
+          <GraphCanvas nodes={nodes} edges={edges} selected={selected} selType={selType} />
+
+          {/* Node list */}
+          <div className="sim-node-list">
+            {nodes.map(n => (
+              <button key={n.id}
+                className={`sim-node-btn ${selType === "node" && selected === n.id ? "active" : ""}`}
+                onClick={() => handleSelect(n.id, "node")}>
+                <span className="sim-node-icon">{n.family === "nig" ? "𝒩" : "Dir"}</span>
+                <span>{n.id}</span>
+                {n.obs.length > 0 && <span className="sim-node-obs">n={n.obs.length}</span>}
+              </button>
+            ))}
+            {edges.map(e => (
+              <button key={e.id}
+                className={`sim-node-btn sim-edge-btn ${selType === "edge" && selected === e.id ? "active" : ""}`}
+                onClick={() => handleSelect(e.id, "edge")}>
+                <span className="sim-node-icon">⟷</span>
+                <span>{e.source} ↔ {e.target}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Add edge control */}
+          {nodes.length >= 2 && (
+            <div className="sim-add-edge">
+              <label>Lier :</label>
+              <select id="edge-src" defaultValue="">
+                <option value="" disabled>source</option>
+                {nodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
+              </select>
+              <span>↔</span>
+              <select id="edge-tgt" defaultValue="">
+                <option value="" disabled>cible</option>
+                {nodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
+              </select>
+              <button onClick={() => {
+                const src = document.getElementById("edge-src").value;
+                const tgt = document.getElementById("edge-tgt").value;
+                if (src && tgt) addEdge(src, tgt);
+              }}>+</button>
+            </div>
+          )}
         </div>
 
         <div className="sim-side">
@@ -504,7 +497,7 @@ export default function GraphSimulator() {
           )}
           {!selectedNode && !selectedEdge && (
             <div className="sim-panel sim-hint">
-              Cliquez un nœud ou un lien pour le configurer.
+              Sélectionnez un nœud ou un lien ci-dessous pour le configurer.
             </div>
           )}
           <EMResults result={emResult} nodes={nodes} />

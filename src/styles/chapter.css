@@ -1107,6 +1107,92 @@ canvas.posterior-canvas {
   color: var(--ink);
 }
 
+.sim-node-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.sim-node-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-light);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sim-node-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sim-node-btn.active {
+  border-color: var(--accent);
+  background: rgba(139, 46, 18, 0.06);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sim-node-icon {
+  font-size: 14px;
+}
+
+.sim-node-obs {
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.sim-edge-btn .sim-node-icon {
+  font-size: 12px;
+}
+
+.sim-add-edge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-light);
+}
+
+.sim-add-edge label {
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+}
+
+.sim-add-edge select {
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--cream);
+}
+
+.sim-add-edge button {
+  background: var(--cream-dark);
+  border: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--ink-light);
+  transition: all 0.15s;
+}
+.sim-add-edge button:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ─── Responsive ─────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
