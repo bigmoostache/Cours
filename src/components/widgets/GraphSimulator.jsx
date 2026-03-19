@@ -216,8 +216,15 @@ function GraphCanvas({ nodes, edges, selected, selType }) {
 // ── Config Panel ─────────────────────────────────────────────────────
 
 function NodePanel({ node, onChange, onDelete, allNodes }) {
-  const { mu, sigma2 } = node.family === "nig" ? nigClinical(node.lambda, node.nu) : { mu: 0, sigma2: 0 };
+  const clinical = node.family === "nig" ? nigClinical(node.lambda, node.nu) : { mu: 0, sigma2: 0 };
   const alphas = node.family === "dir" ? dirAlphas(node.lambda) : [];
+
+  // For NIG: user edits μ₀, σ₀², ν₀ → we compute λ₀
+  const setClinical = (mu, sigma2, nu) => {
+    const l0 = nu * mu;
+    const l1 = -nu / (2 * sigma2);
+    onChange({ ...node, lambda: [l0, l1], nu });
+  };
 
   return (
     <div className="sim-panel">
@@ -236,37 +243,45 @@ function NodePanel({ node, onChange, onDelete, allNodes }) {
         </select>
       </div>
 
-      <div className="sim-field">
-        <label>ν₀ (pseudo-obs)</label>
-        <input type="number" step="0.5" min="0.1" value={node.nu}
-          onChange={e => onChange({ ...node, nu: +e.target.value })} />
-      </div>
-
       {node.family === "nig" && (
         <>
           <div className="sim-field">
-            <label>λ₀₁ (accum. Σxᵢ)</label>
-            <input type="number" step="0.5" value={node.lambda[0]}
-              onChange={e => { const l = [...node.lambda]; l[0] = +e.target.value; onChange({ ...node, lambda: l }); }} />
+            <label>μ₀ (moyenne a priori)</label>
+            <input type="number" step="0.5" value={+clinical.mu.toFixed(4)}
+              onChange={e => setClinical(+e.target.value, clinical.sigma2, node.nu)} />
           </div>
           <div className="sim-field">
-            <label>λ₀₂ (accum. -Σxᵢ²/2)</label>
-            <input type="number" step="0.1" value={node.lambda[1]}
-              onChange={e => { const l = [...node.lambda]; l[1] = +e.target.value; onChange({ ...node, lambda: l }); }} />
+            <label>σ₀² (variance a priori)</label>
+            <input type="number" step="0.5" min="0.01" value={+clinical.sigma2.toFixed(4)}
+              onChange={e => setClinical(clinical.mu, Math.max(0.01, +e.target.value), node.nu)} />
+          </div>
+          <div className="sim-field">
+            <label>ν₀ (pseudo-observations)</label>
+            <input type="number" step="0.5" min="0.1" value={node.nu}
+              onChange={e => setClinical(clinical.mu, clinical.sigma2, Math.max(0.1, +e.target.value))} />
           </div>
           <div className="sim-interp">
-            ≡ μ₀ = {mu.toFixed(2)}, σ₀² = {sigma2.toFixed(2)}
+            → λ₀ = ({node.lambda[0].toFixed(3)}, {node.lambda[1].toFixed(3)}), ν₀ = {node.nu}
           </div>
         </>
       )}
 
-      {node.family === "dir" && node.lambda.map((l, k) => (
-        <div className="sim-field" key={k}>
-          <label>λ₀,{k + 1} (α{k + 1} = {(l + 1).toFixed(1)})</label>
-          <input type="number" step="0.5" min="-0.99" value={l}
-            onChange={e => { const la = [...node.lambda]; la[k] = +e.target.value; onChange({ ...node, lambda: la }); }} />
-        </div>
-      ))}
+      {node.family === "dir" && (
+        <>
+          <div className="sim-field">
+            <label>ν₀ (pseudo-obs)</label>
+            <input type="number" step="0.5" min="0.1" value={node.nu}
+              onChange={e => onChange({ ...node, nu: +e.target.value })} />
+          </div>
+          {node.lambda.map((l, k) => (
+            <div className="sim-field" key={k}>
+              <label>λ₀,{k + 1} (α{k + 1} = {(l + 1).toFixed(1)})</label>
+              <input type="number" step="0.5" min="-0.99" value={l}
+                onChange={e => { const la = [...node.lambda]; la[k] = +e.target.value; onChange({ ...node, lambda: la }); }} />
+            </div>
+          ))}
+        </>
+      )}
 
       <div className="sim-obs-section">
         <label>Observations ({node.obs.length})</label>
