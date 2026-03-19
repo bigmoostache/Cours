@@ -146,3 +146,92 @@ sections:
       - type: callout
         title: "Sur-apprentissage structurel."
         text: "Un paramètre de couplage libre sans régularisation diverge vers la solution triviale $X = Y$. Fixer $\\eta_{XY} = \\mathrm{diag}(1/\\varepsilon^2, 0)$ *est* la régularisation : on impose que le lien a une précision finie, celle de l'instrument."
+
+  - number: "Q 2"
+    title: "Couplage cross-type : température (NIG) × état grippal (Beta)"
+    uses: [exp-family, suff-stat, nat-param, eta-xy, tilted-param, conjugate-prior, cs-gaussian, cs-nig]
+    content:
+      - type: h3
+        text: "Énoncé du problème"
+      - type: p
+        text: "On dispose d'un nœud $X$ gaussien (température frontale, prior NIG) et d'un nœud $Y$ Beta (état grippal, $y \\in [0,1]$). On veut encoder : *la grippe provoque la fièvre*. Comment construire le couplage dans le cadre exponentiel ?"
+
+      - type: h3
+        text: "Les deux familles"
+      - type: table
+        headers: ["Nœud", "Famille", "$T(\\cdot)$", "$\\eta$"]
+        rows:
+          - ["$X$ (température)", "Gaussienne", "$(x,\\, x^2)$", "$(\\mu/\\sigma^2,\\; -1/(2\\sigma^2))$"]
+          - ["$Y$ (grippe)", "Beta", "$(\\log y,\\, \\log(1-y))$", "$(\\alpha-1,\\; \\beta-1)$"]
+      - type: p
+        text: "La matrice d'interaction $\\eta_{XY} \\in \\mathbb{R}^{2 \\times 2}$ couple les statistiques suffisantes de deux familles *distinctes*. Le terme d'interaction dans la log-densité jointe est $T_X(x)^\\top \\eta_{XY}\\, T_Y(y)$."
+
+      - type: h3
+        text: "Construction de $\\eta_{XY}$"
+      - type: p
+        text: "Physiquement, on veut que la *position* de $X$ (première composante $T_X^{(1)} = x$) module le *mode* de $Y$ (qui dépend de $\\alpha/(\\alpha+\\beta)$, donc des deux composantes de $T_Y$). La *variance* de $X$ ne devrait pas influencer $Y$ — la deuxième ligne est nulle. Les deux coefficients de la première ligne sont opposés pour incliner $\\alpha$ vers le haut et $\\beta$ vers le bas quand $x$ augmente :"
+      - type: box
+        title: "Matrice d'interaction — température × grippe"
+        tex: "\\eta_{XY} = \\begin{pmatrix} \\delta & -\\delta \\\\ 0 & 0 \\end{pmatrix}, \\qquad \\delta > 0"
+      - type: p
+        text: "Développons le terme d'interaction dans l'exposant :"
+      - type: math
+        tex: "T_X(x)^\\top \\eta_{XY}\\, T_Y(y) = \\delta\\, x\\, \\log y \\;-\\; \\delta\\, x\\, \\log(1-y) = \\delta\\, x\\, \\log\\!\\frac{y}{1-y}"
+      - type: p
+        text: "Le couplage passe par le produit de la température $x$ et du log-odds $\\log(y/(1-y))$ de la grippe — une forme naturelle qui lie une variable continue à une variable sur $[0,1]$."
+
+      - type: h3
+        text: "Conditionnelle $p(y \\mid x)$ — la grippe sachant la température"
+      - type: p
+        text: "Le paramètre incliné de $Y$ sachant $x$ est :"
+      - type: math
+        label: "Paramètre incliné de Y"
+        tex: "\\eta_Y^*(x) = \\eta_Y + \\eta_{XY}^\\top T_X(x) = \\begin{pmatrix} \\alpha - 1 + \\delta\\, x \\\\ \\beta - 1 - \\delta\\, x \\end{pmatrix}"
+      - type: p
+        text: "Soit $Y \\mid x \\;\\sim\\; \\text{Beta}(\\alpha + \\delta\\, x,\\;\\beta - \\delta\\, x)$. Le mode conditionnel est :"
+      - type: math
+        tex: "\\text{mode}(Y \\mid x) = \\frac{\\alpha + \\delta\\, x - 1}{\\alpha + \\beta - 2}"
+      - type: p
+        text: "Quand $x$ augmente (fièvre), $\\alpha^*$ monte et $\\beta^*$ baisse — le mode se déplace vers 1 (grippe probable)."
+
+      - type: h3
+        text: "Conditionnelle $p(x \\mid y)$ — la température sachant la grippe"
+      - type: p
+        text: "Symétriquement, le paramètre incliné de $X$ sachant $y$ est :"
+      - type: math
+        label: "Paramètre incliné de X"
+        tex: "\\eta_X^*(y) = \\eta_X + \\eta_{XY}\\, T_Y(y) = \\begin{pmatrix} \\mu/\\sigma^2 + \\delta\\,\\log(y/(1-y)) \\\\ -1/(2\\sigma^2) \\end{pmatrix}"
+      - type: p
+        text: "La moyenne de $X$ est décalée de $\\delta\\,\\sigma^2\\,\\log(y/(1-y))$. La variance n'est pas affectée (deuxième composante inchangée). La moyenne conditionnelle est donc :"
+      - type: math
+        tex: "\\mathbb{E}[X \\mid y] = \\mu + \\delta\\,\\sigma^2\\,\\log\\!\\frac{y}{1-y}"
+
+      - type: h3
+        text: "L'asymétrie des effets — un seul $\\delta$, deux amplitudes très différentes"
+      - type: p
+        text: "Le couplage est symétrique dans $\\eta_{XY}$ — un seul paramètre $\\delta$ — mais les *effets* sont asymétriques. C'est la structure des familles qui crée cette asymétrie, pas le couplage lui-même."
+      - type: p
+        text: "**Grippe → température.** Passer de $y \\approx 0$ (sain) à $y \\approx 1$ (grippal) fait varier $\\log(y/(1-y))$ de $-\\infty$ à $+\\infty$. En pratique, de $y = 0.1$ à $y = 0.9$, le log-odds passe de $-2.2$ à $+2.2$ — un swing de $4.4$. L'effet sur la température est $\\Delta\\mu = \\delta\\,\\sigma^2 \\times 4.4$. Avec $\\sigma^2 \\approx 0.06$ et $\\delta = 25$, cela donne $\\Delta\\mu \\approx 6.6^\\circ$C — un décalage *massif* et très concentré, exactement ce qu'on attend cliniquement : la grippe provoque quasi-certainement la fièvre."
+      - type: p
+        text: "**Température → grippe.** Passer de $x = 36.5^\\circ$C (sain) à $x = 39^\\circ$C (fébrile) fait varier $x$ de $2.5$ unités. L'effet sur le mode de $Y$ est $\\Delta\\alpha^* = \\delta \\times 2.5 = 62.5$ — ce qui semble énorme, mais ce $\\Delta\\alpha^*$ se dilue dans la somme $\\alpha^* + \\beta^*$. Le mode passe de $\\approx 0.3$ à $\\approx 0.65$ : une augmentation notable mais *modérée* de la probabilité de grippe. C'est cohérent : la fièvre est compatible avec la grippe, mais aussi avec une angine, une infection urinaire, un coup de chaleur..."
+      - type: callout
+        title: "Pourquoi l'asymétrie est naturelle."
+        text: "La grippe est une cause *forte et spécifique* de fièvre (la plupart des grippés ont de la fièvre). Mais la fièvre est un signe *faible et non spécifique* de grippe (beaucoup de fébriles n'ont pas la grippe). Cette asymétrie n'est pas encodée dans $\\delta$ — elle émerge de la géométrie des familles : le log-odds de la Beta amplifie les changements près des bords (effet $Y \\to X$ fort), tandis que la linéarité de $T_X = x$ dilue l'effet dans le dénominateur du mode Beta (effet $X \\to Y$ modéré). Un seul paramètre $\\delta$ capture les deux directions avec les bonnes proportions."
+
+      - type: h3
+        text: "Normalisabilité"
+      - type: p
+        text: "La Beta exige $\\alpha^*(x) > 0$ et $\\beta^*(x) > 0$, soit $x < \\beta/\\delta$ et $x > -\\alpha/\\delta$. L'ancrage quadratique gaussien $-x^2/(2\\sigma^2)$ garantit que la masse en dehors de cet intervalle est exponentiellement négligeable pour $\\sigma$ petit. La jointe est donc normalisable pour tout $\\delta$ fini dès que $\\alpha, \\beta > 1$."
+
+      - type: h3
+        text: "Résumé"
+      - type: table
+        headers: ["Aspect", "Valeur"]
+        rows:
+          - ["$\\eta_{XY}$", "$\\begin{pmatrix} \\delta & -\\delta \\\\\\\\ 0 & 0 \\end{pmatrix}$"]
+          - ["$\\delta > 0$", "Force du couplage (unique paramètre)"]
+          - ["$p(y \\mid x)$", "Beta$(\\alpha + \\delta x,\\; \\beta - \\delta x)$"]
+          - ["$p(x \\mid y)$", "Gaussienne de moyenne $\\mu + \\delta\\sigma^2 \\log(y/(1-y))$"]
+          - ["Grippe $\\to$ fièvre", "Fort : log-odds amplifie, $\\Delta\\mu \\sim$ plusieurs °C"]
+          - ["Fièvre $\\to$ grippe", "Modéré : $\\Delta x$ se dilue dans $\\alpha^* + \\beta^*$"]
+          - ["Normalisabilité", "OK pour $\\delta$ fini, $\\alpha, \\beta > 1$"]
