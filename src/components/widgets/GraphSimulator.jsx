@@ -628,6 +628,23 @@ export default function GraphSimulator() {
 
       {/* Main area */}
       <div className="sim-main">
+        <div className="sim-side">
+          {selectedNode && (
+            <NodePanel node={selectedNode} onChange={updateNode}
+              onDelete={deleteNode} allNodes={nodes} />
+          )}
+          {selectedEdge && (
+            <EdgePanel edge={selectedEdge} onChange={updateEdge}
+              onDelete={deleteEdge} nodes={nodes} />
+          )}
+          {!selectedNode && !selectedEdge && (
+            <div className="sim-panel sim-hint">
+              Sélectionnez un nœud ou un lien ci-dessous pour le configurer.
+            </div>
+          )}
+          <EMResults result={emResult} nodes={nodes} />
+        </div>
+
         <div className="sim-graph-area">
           <GraphCanvas nodes={nodes} edges={edges} selected={selected} selType={selType} />
 
@@ -672,23 +689,6 @@ export default function GraphSimulator() {
               }}>+</button>
             </div>
           )}
-        </div>
-
-        <div className="sim-side">
-          {selectedNode && (
-            <NodePanel node={selectedNode} onChange={updateNode}
-              onDelete={deleteNode} allNodes={nodes} />
-          )}
-          {selectedEdge && (
-            <EdgePanel edge={selectedEdge} onChange={updateEdge}
-              onDelete={deleteEdge} nodes={nodes} />
-          )}
-          {!selectedNode && !selectedEdge && (
-            <div className="sim-panel sim-hint">
-              Sélectionnez un nœud ou un lien ci-dessous pour le configurer.
-            </div>
-          )}
-          <EMResults result={emResult} nodes={nodes} />
         </div>
       </div>
     </div>
