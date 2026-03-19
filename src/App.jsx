@@ -11,6 +11,7 @@ import chapitre4 from "./content/chapitre_4.yaml";
 import chapitre5 from "./content/chapitre_5.yaml";
 import chapitre6 from "./content/chapitre_6.yaml";
 import chapitre7 from "./content/chapitre_7.yaml";
+import qa from "./content/qa.yaml";
 
 const CHAPTER_DATA = {
   "chapitre-1": chapitre1,
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="/chapitre-5" element={<ChapterRenderer data={chapitre5} />} />
           <Route path="/chapitre-6" element={<ChapterRenderer data={chapitre6} />} />
           <Route path="/chapitre-7" element={<ChapterRenderer data={chapitre7} />} />
+          <Route path="/qa" element={<ChapterRenderer data={qa} />} />
           <Route path="/simulation" element={
             <div className="page" style={{ maxWidth: 1200 }}>
               <div className="chapter-header">

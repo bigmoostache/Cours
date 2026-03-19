@@ -1,0 +1,61 @@
+chapter: "Q&A"
+label: "Inférence Bayésienne · Questions & Réponses"
+title: "Questions & Réponses"
+subtitle: "Cas pratiques, interprétations et pièges courants — les questions que l'on se pose en appliquant le cadre."
+footer_right: "Questions & Réponses"
+
+sections:
+  - number: "Q 1"
+    title: "Instrument bruité : comment coupler $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$ ?"
+    uses: [exp-family, nat-param, conjugate-prior, cs-gaussian]
+    content:
+      - type: h3
+        text: "La question"
+      - type: p
+        text: "On a une variable latente $X$ modélisée par un nœud NIG. On observe un instrument $Y$ tel que $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$, où $\\varepsilon^2$ est la variance connue du bruit de mesure. Comment encoder cette relation dans le graphe d'inférence ?"
+      - type: h3
+        text: "Le setup"
+      - type: p
+        text: "On a deux ingrédients :"
+      - type: table
+        headers: ["Variable", "Modèle", "Rôle"]
+        rows:
+          - ["$X$", "$\\text{NIG}(\\lambda_0^X, \\nu_0^X)$", "Variable latente (le prior sur la vraie valeur)"]
+          - ["$Y \\mid X$", "$\\mathcal{N}(X, \\varepsilon^2)$", "Instrument bruité (on observe les $y_i$)"]
+      - type: p
+        text: "L'observation $y \\mid x \\sim \\mathcal{N}(x, \\varepsilon^2)$ est un modèle Gaussien dont la *moyenne* est inconnue (c'est $x$, le couplage) et la *variance* est connue ($\\varepsilon^2$, le bruit de l'instrument)."
+      - type: h3
+        text: "Traduction en nœuds du graphe"
+      - type: p
+        text: "On crée un *nœud Y* de type NIG, couplé au nœud $X$ :"
+      - type: table
+        headers: ["Paramètre", "Valeur", "Raison"]
+        rows:
+          - ["$\\mu_0^Y$", "$0$", "Prior vague — l'instrument seul ne sait rien"]
+          - ["$\\sigma_0^{2,Y}$", "Grand (e.g. $100$)", "Prior non-informatif"]
+          - ["$\\nu_0^Y$", "Petit (e.g. $0.1$)", "Très peu de pseudo-observations a priori"]
+          - ["Observations", "$y_1, \\dots, y_m$", "Les mesures de l'instrument"]
+      - type: h3
+        text: "La force de couplage"
+      - type: p
+        text: "Le couplage $X \\leftrightarrow Y$ doit encoder la relation $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$. La force naturelle est :"
+      - type: box
+        title: "Force de couplage instrument"
+        tex: "\\nu_0^{\\text{couplage}} = \\frac{1}{\\varepsilon^2}"
+      - type: p
+        text: "L'interprétation est directe : $Y \\mid X \\sim \\mathcal{N}(X, \\varepsilon^2)$ revient à dire qu'on a $1/\\varepsilon^2$ pseudo-observations de force qui tirent $Y$ vers $X$. Plus $\\varepsilon$ est petit (instrument précis), plus le couplage est fort. À la limite $\\varepsilon \\to 0$, le couplage est infini et $Y \\to X$."
+      - type: callout
+        title: "Pourquoi $\\lambda_0 = 0$ reste correct ?"
+        text: "Le couplage impose que $Y$ soit attiré vers l'*estimation courante* de $X$ (via $\\hat{\\eta}_X$), pas vers une valeur fixe. Le biais directionnel vient de $X$, pas du lien — d'où $\\lambda_0 = 0$ dans l'arête."
+      - type: h3
+        text: "Attention : $\\nu_0$ par arête"
+      - type: p
+        text: "Ce cas montre qu'un $\\nu_0$ *global* (identique pour tous les liens) est trop restrictif. Deux instruments avec des précisions $\\varepsilon_1^2 \\neq \\varepsilon_2^2$ nécessitent des forces de couplage différentes : $1/\\varepsilon_1^2$ et $1/\\varepsilon_2^2$. Il faut donc un $\\nu_0$ *par arête* (en gardant $\\lambda_0 = 0$ forcé)."
+      - type: h3
+        text: "Raccourci : pas de nœud $Y$ séparé"
+      - type: p
+        text: "Si on préfère ne pas créer de nœud $Y$, on peut absorber les observations de l'instrument directement dans le nœud $X$. Chaque observation $y_i$ contribue à la statistique suffisante de $X$ avec un poids $1/\\varepsilon^2$ :"
+      - type: math
+        tex: "\\lambda_n^X = \\lambda_0^X + \\sum_i T(x_i) + \\frac{1}{\\varepsilon^2} \\sum_j y_j, \\qquad \\nu_n^X = \\nu_0^X + n_x + \\frac{m}{\\varepsilon^2}"
+      - type: p
+        text: "Ce raccourci est équivalent quand l'instrument n'est connecté qu'à $X$. En revanche, si $Y$ a *plusieurs* connexions (e.g. un instrument qui mesure une combinaison de variables), il faut un nœud séparé."

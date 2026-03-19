@@ -8,6 +8,7 @@ const CHAPTERS = [
   { num: 5, slug: "chapitre-5", title: "Interactions entre Familles Exponentielles" },
   { num: 6, slug: "chapitre-6", title: "Observations Éparses, Non Appariées, Mixtes" },
   { num: 7, slug: "chapitre-7", title: "EM : Stabilité et Convergence" },
+  { num: "Q&A", slug: "qa", title: "Questions & Réponses" },
 ];
 
 export default function Sidebar({ open, onClose, chapters, focusSearch, onSearchFocused }) {
