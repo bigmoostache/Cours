@@ -925,32 +925,27 @@ canvas.posterior-canvas {
 
 .sim-main {
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 24px;
   min-width: 0;
-  overflow: hidden;
 }
 
 .sim-graph-area {
-  flex: 1;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
+  width: 100%;
 }
 
 .sim-graph-area svg {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 400px;
 }
 
 .sim-side {
-  width: 280px;
-  flex-shrink: 0;
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .sim-panel {
