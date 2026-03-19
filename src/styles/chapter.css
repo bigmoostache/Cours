@@ -872,6 +872,7 @@ canvas.posterior-canvas {
 .graph-simulator {
   max-width: 1100px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .sim-toolbar {
@@ -926,12 +927,22 @@ canvas.posterior-canvas {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sim-graph-area {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
   overflow: hidden;
+}
+
+.sim-graph-area svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 400px;
 }
 
 .sim-side {

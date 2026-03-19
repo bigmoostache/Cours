@@ -380,7 +380,7 @@ function GraphCanvas({ nodes, edges, selected, selType }) {
 
   return (
     <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`}
-      style={{ width: "100%", maxHeight: height, background: "white", border: "1px solid #c8bfb0", borderRadius: 4, overflow: "hidden", display: "block" }} />
+      style={{ background: "white", border: "1px solid #c8bfb0", borderRadius: 4 }} />
   );
 }
 
