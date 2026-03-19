@@ -151,8 +151,8 @@ definitions:
 
   - id: mean-space
     term: "Espace des moments $\\mathcal{M}$"
-    tex: "\\mathcal{M} = \\{\\mu = \\nabla A(\\eta) : \\eta \\in \\mathrm{int}(\\mathcal{H})\\}"
-    description: "Image de $\\mathcal{H}$ par $\\nabla A$. Convexe et ouvert. Travailler dans $\\mathcal{M}$ garantit la validité du domaine."
+    tex: "\\mathcal{M} = \\{\\mu = \\nabla A(\\eta) : \\eta \\in \\mathrm{int}(\\Omega)\\}"
+    description: "Image de $\\Omega$ par $\\nabla A$. Convexe et ouvert. Travailler dans $\\mathcal{M}$ garantit la validité du domaine."
     defined_in: { chapter: 7, section: 7 }
 
   - id: bregman
@@ -168,10 +168,10 @@ definitions:
     defined_in: { chapter: 7, section: 8 }
 
   - id: natural-domain
-    term: "Domaine naturel $\\mathcal{H}$"
-    tex: "\\mathcal{H} = \\{\\eta : A(\\eta) < \\infty\\}"
+    term: "Domaine naturel $\\Omega$"
+    tex: "\\Omega = \\{\\eta : A(\\eta) < \\infty\\}"
     description: "Ensemble des paramètres naturels pour lesquels la distribution est normalisable. Ouvert et convexe."
-    defined_in: { chapter: 5, section: 2 }
+    defined_in: { chapter: 1, section: 2 }
 
   - id: score-equation
     term: "Équation de score"
