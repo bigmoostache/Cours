@@ -826,7 +826,7 @@ canvas.posterior-canvas {
   width: 100%;
   border-collapse: collapse;
   margin: 6px 0 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .def-cheatsheet td {
@@ -842,7 +842,7 @@ canvas.posterior-canvas {
 
 .def-cs-label {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
   white-space: nowrap;
   width: 1%;
@@ -851,12 +851,12 @@ canvas.posterior-canvas {
 
 .def-cs-value {
   font-family: 'EB Garamond', serif;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--ink-light);
 }
 
 .def-cs-value .katex {
-  font-size: 0.85em;
+  font-size: 1em;
 }
 
 .defs-empty {
