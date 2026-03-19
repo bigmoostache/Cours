@@ -136,38 +136,13 @@ sections:
       - type: h3
         text: "Note — mettre à jour $\\eta_{XY}$ dans l'EM ?"
       - type: p
-        text: "Dans le simulateur actuel, $\\eta_{XY}$ est un hyperparamètre fixé : l'EM itère sur les estimations $\\hat{\\eta}_X$, $\\hat{\\eta}_Y$ des nœuds, mais les couplages restent constants. Est-ce une limitation ?"
+        text: "Le cadre du Chapitre 5, §7 permet en principe d'inférer $\\eta_{XY}$ comme n'importe quel paramètre naturel, via le bloc croisé $\\lambda^{(XY)} = \\lambda_0^{(XY)} + \\sum_i T_X(x_i) \\otimes T_Y(y_i)$. Cela fait sens quand le couplage est inconnu *et* qu'on dispose d'observations appariées $(x_i, y_i)$. Cela ne fait *pas* sens quand $\\eta_{XY}$ est fixé par la physique (précision instrument connue), ou quand on n'observe jamais $X$ directement — sans paires, $\\lambda^{(XY)}$ n'accumule rien."
       - type: p
-        text: "Le cadre du Chapitre 5, §7 fournit la réponse. La mise à jour bayésienne accumule *trois* blocs de statistiques suffisantes : $\\lambda^{(X)}$, $\\lambda^{(Y)}$, et $\\lambda^{(XY)} = \\lambda_0^{(XY)} + \\sum_i T_X(x_i) \\otimes T_Y(y_i)$. Le bloc croisé $\\lambda^{(XY)}$ porte toute l'information sur $\\eta_{XY}$. En principe, on peut donc inclure $\\eta_{XY}$ dans les paramètres à inférer : l'estimateur a posteriori est $\\hat{\\eta}_{XY} = \\lambda_n^{(XY)} / \\nu_n$, par la même règle que pour les paramètres marginaux."
+        text: "Pire : dans le cas $X$ latent avec $Y$ seul observé, libérer $\\eta_{XY}$ fait *diverger* l'EM. Sans données propres, $X$ copie l'estimation de $Y$ ($\\hat{\\eta}_X \\approx \\hat{\\eta}_Y$). Les pseudo-statistiques croisées $\\hat{\\eta}_X \\otimes \\hat{\\eta}_Y \\approx \\hat{\\eta}_Y \\otimes \\hat{\\eta}_Y$ sont toujours positives et croissantes, créant une boucle de renforcement :"
+      - type: math
+        tex: "(\\eta_{XY})_{11} \\uparrow \\;\\Longrightarrow\\; \\hat{\\eta}_X \\to \\hat{\\eta}_Y \\;\\Longrightarrow\\; \\lambda^{(XY)} \\uparrow \\;\\Longrightarrow\\; (\\eta_{XY})_{11} \\uparrow"
       - type: p
-        text: "Cela fait sens quand la *force du couplage* est inconnue — par exemple si on sait que deux variables sont liées mais sans connaître l'intensité de la dépendance. Les observations appariées $(x_i, y_i)$ informent directement $\\eta_{XY}$ via les produits croisés $T_X(x_i) \\otimes T_Y(y_i)$."
-      - type: p
-        text: "Cela ne fait *pas* sens quand $\\eta_{XY}$ est une donnée du problème. Pour un instrument de précision connue $\\varepsilon^2$, le couplage $\\eta_{XY} = \\mathrm{diag}(1/\\varepsilon^2, 0)$ est fixé par la physique de l'instrument, pas par les observations. Le mettre à jour reviendrait à « apprendre » une constante connue — au mieux inutile, au pire instable quand les données sont rares."
-      - type: p
-        text: "Il y a une subtilité supplémentaire : mettre à jour $\\eta_{XY}$ dans l'EM exige des observations *appariées* $(x_i, y_i)$ — des couples où l'on observe simultanément la variable latente et sa mesure. Or dans beaucoup de settings, on n'observe que les $y_j$ (mesures) et jamais les $x_i$ directement. Sans observations appariées, $\\lambda^{(XY)}$ n'accumule rien et $\\eta_{XY}$ reste à sa valeur a priori. C'est un argument pratique fort pour fixer $\\eta_{XY}$ plutôt que de tenter de l'inférer."
+        text: "À convergence, $(\\eta_{XY})_{11} \\to \\infty$ : l'EM conclut $X = Y$ p.s. C'est logique — la vraisemblance marginale $p(y) = \\int p(x,y)\\,dx$ est monotone en $(\\eta_{XY})_{11}$, le maximum est à la frontière."
       - type: callout
-        title: "Résumé."
-        text: "Inférer $\\eta_{XY}$ est mathématiquement possible (c'est un paramètre naturel comme les autres, mis à jour via $\\lambda^{(XY)}$). C'est utile quand le couplage est inconnu *et* qu'on dispose d'observations appariées. C'est inutile quand le couplage est fixé par la physique du problème (précision instrument, modèle génératif connu). Le simulateur actuel choisit correctement de fixer $\\eta_{XY}$ — les cas où l'on voudrait l'inférer relèvent de la sélection de modèle, pas de l'EM."
-      - type: p
-        text: "Détaillons ce qui se passerait si on laissait l'EM mettre à jour $\\eta_{XY}$ dans le cas le plus simple : un seul $X$ latent (jamais observé), un nœud $Y$ avec $m$ observations, et rien d'autre dans le graphe."
-      - type: p
-        text: "À chaque itération, l'EM estime $\\hat{\\eta}_X$ en inclinant le prior de $X$ par son voisin $Y$ :"
-      - type: math
-        tex: "\\hat{\\eta}_X^{(1)} \\;\\propto\\; \\frac{\\lambda_0^{X,(1)} + (\\eta_{XY})_{11} \\cdot \\hat{\\eta}_Y^{(1)}}{\\nu_0^X + (\\eta_{XY})_{11}}"
-      - type: p
-        text: "Avec un prior vague ($\\nu_0^X \\to 0$), cette estimation se simplifie en $\\hat{\\eta}_X^{(1)} \\approx \\hat{\\eta}_Y^{(1)}$ — quelle que soit la valeur de $(\\eta_{XY})_{11}$, tant qu'elle est non nulle. Le nœud $X$, sans données propres, *copie* l'estimation de $Y$."
-      - type: p
-        text: "Si on met maintenant à jour $(\\eta_{XY})_{11}$ via le bloc croisé $\\lambda^{(XY)}$, on accumule des pseudo-statistiques croisées de la forme $\\hat{\\eta}_X^{(1)} \\cdot \\hat{\\eta}_Y^{(1)} \\approx (\\hat{\\eta}_Y^{(1)})^2$. Ce produit est toujours *positif* (c'est un carré) et *croissant* avec le nombre d'observations. Le mécanisme de feedback est :"
-      - type: math
-        tex: "(\\eta_{XY})_{11} \\uparrow \\;\\Longrightarrow\\; \\hat{\\eta}_X \\to \\hat{\\eta}_Y \\;\\Longrightarrow\\; \\lambda^{(XY)} = \\sum \\hat{\\eta}_X \\otimes \\hat{\\eta}_Y \\uparrow \\;\\Longrightarrow\\; (\\eta_{XY})_{11} \\uparrow"
-      - type: p
-        text: "C'est une *boucle de renforcement positif*. Le couplage estimé ne peut que croître d'itération en itération. À convergence, $(\\eta_{XY})_{11} \\to \\infty$ : l'EM conclut que $X$ et $Y$ sont infiniment couplés, c'est-à-dire $X = Y$ presque sûrement."
-      - type: p
-        text: "Ce résultat est en fait logique, mais pour une raison triviale. Le modèle joint $p(x, y \\mid \\eta_X, \\eta_Y, \\eta_{XY})$ est une gaussienne bivariée. La vraisemblance marginale des $y_j$ seuls est :"
-      - type: math
-        tex: "p(y) = \\int p(x, y) \\, dx \\propto \\exp\\!\\Bigl(\\eta_Y^{\\text{eff}}\\!\\cdot T_Y(y) - A(\\eta_Y^{\\text{eff}})\\Bigr)"
-      - type: p
-        text: "où $\\eta_Y^{\\text{eff}}$ intègre la contribution de $X$ via la log-partition inclinée $A_X(\\eta_X + \\eta_{XY} T_Y)$ (Ch. 5, §4). Maximiser cette vraisemblance par rapport à $\\eta_{XY}$ revient à demander : *quelle corrélation entre $X$ et $Y$ rend les observations $y_j$ les plus probables ?* Puisque $X$ n'est jamais observé, toute valeur de $X$ est compatible — et la vraisemblance marginale est *monotone croissante* en $(\\eta_{XY})_{11}$. Le maximum est à la frontière : couplage infini."
-      - type: callout
-        title: "Intuition."
-        text: "L'EM essaie de trouver la variable latente $X$ qui *explique le mieux* les données $Y$. S'il peut librement choisir la force du lien, il conclut que la meilleure explication est $X = Y$ : zéro résidu, vraisemblance maximale. C'est l'analogue du sur-apprentissage en sélection de modèle — un paramètre libre sans régularisation diverge vers la solution triviale. Fixer $\\eta_{XY} = \\mathrm{diag}(1/\\varepsilon^2, 0)$ est précisément cette régularisation : on impose que le lien $X \\leftrightarrow Y$ a une précision finie, celle de l'instrument."
+        title: "Sur-apprentissage structurel."
+        text: "Un paramètre de couplage libre sans régularisation diverge vers la solution triviale $X = Y$. Fixer $\\eta_{XY} = \\mathrm{diag}(1/\\varepsilon^2, 0)$ *est* la régularisation : on impose que le lien a une précision finie, celle de l'instrument."
