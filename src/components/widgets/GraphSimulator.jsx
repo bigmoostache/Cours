@@ -36,6 +36,170 @@ function dirAlphas(lambda) {
   return lambda.map(l => l + 1);
 }
 
+// ── NIG → Student-t predictive ───────────────────────────────────────
+// After integrating out (μ, σ²) from NIG(μ₀, ν₀, α₀, β₀):
+//   x ~ t_{2α}(μ₀, β(ν+1)/(αν))
+// We parameterize NIG via λ and ν. Need to recover α, β.
+// Convention: λ = (ν·μ₀, -ν/(2σ₀²))  with prior α₀, β₀.
+// For simplicity (matching the ch4 formalisme), we use α₀ = ν/2, β₀ = ν·σ₀²/2
+// so that the predictive is t_ν(μ₀, σ₀²·(ν+1)/ν)
+
+function lnGamma(x) {
+  // Lanczos approximation
+  const g = 7;
+  const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+    771.32342877765313, -176.61502916214059, 12.507343278686905,
+    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lnGamma(1 - x);
+  x -= 1;
+  let a = c[0];
+  const t = x + g + 0.5;
+  for (let i = 1; i < g + 2; i++) a += c[i] / (x + i);
+  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+}
+
+function studentPDF(x, nu, mu, scale) {
+  // t_ν(mu, scale): density of location-scale Student-t
+  // f(x) = Γ((ν+1)/2) / (Γ(ν/2)·√(νπs²)) · (1 + (x-μ)²/(νs²))^(-(ν+1)/2)
+  const s2 = scale;
+  const z = (x - mu);
+  const logCoeff = lnGamma((nu + 1) / 2) - lnGamma(nu / 2) - 0.5 * Math.log(nu * Math.PI * s2);
+  const logBody = -(nu + 1) / 2 * Math.log(1 + z * z / (nu * s2));
+  return Math.exp(logCoeff + logBody);
+}
+
+// ── Predictive PDF Plot ──────────────────────────────────────────────
+
+function PredictivePlot({ node }) {
+  const canvasRef = useRef(null);
+  const W = 400, H = 140;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    const { mu, sigma2 } = nigClinical(node.lambda, node.nu);
+    const nu = Math.max(node.nu, 0.5);
+
+    // Predictive: t_ν(μ₀, σ₀²·(ν+1)/ν)
+    const df = nu;
+    const scale = sigma2 * (nu + 1) / nu;
+
+    // Also overlay observations
+    const obs = node.obs || [];
+
+    // Determine x range: center on μ₀, spread based on scale
+    const spread = Math.max(3 * Math.sqrt(scale * (df > 2 ? df / (df - 2) : 10)), 1);
+    const xMin = mu - spread;
+    const xMax = mu + spread;
+
+    // If obs exist, extend range to include them
+    let plotMin = xMin, plotMax = xMax;
+    if (obs.length > 0) {
+      plotMin = Math.min(plotMin, Math.min(...obs) - spread * 0.2);
+      plotMax = Math.max(plotMax, Math.max(...obs) + spread * 0.2);
+    }
+
+    // Sample PDF
+    const N = W;
+    const xs = [], ys = [];
+    let yMax = 0;
+    for (let i = 0; i < N; i++) {
+      const x = plotMin + (plotMax - plotMin) * i / (N - 1);
+      const y = studentPDF(x, df, mu, scale);
+      xs.push(x);
+      ys.push(y);
+      if (y > yMax) yMax = y;
+    }
+    yMax = yMax * 1.15 || 1; // headroom
+
+    const pad = { t: 10, b: 24, l: 8, r: 8 };
+    const pw = W - pad.l - pad.r;
+    const ph = H - pad.t - pad.b;
+    const toX = (x) => pad.l + (x - plotMin) / (plotMax - plotMin) * pw;
+    const toY = (y) => pad.t + ph - (y / yMax) * ph;
+
+    // Background
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid line at y=0
+    ctx.strokeStyle = "#e8e0d6";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, toY(0));
+    ctx.lineTo(W - pad.r, toY(0));
+    ctx.stroke();
+
+    // PDF curve — fill
+    ctx.beginPath();
+    ctx.moveTo(toX(xs[0]), toY(0));
+    for (let i = 0; i < N; i++) ctx.lineTo(toX(xs[i]), toY(ys[i]));
+    ctx.lineTo(toX(xs[N - 1]), toY(0));
+    ctx.closePath();
+    ctx.fillStyle = "rgba(139, 46, 18, 0.08)";
+    ctx.fill();
+
+    // PDF curve — stroke
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      if (i === 0) ctx.moveTo(toX(xs[i]), toY(ys[i]));
+      else ctx.lineTo(toX(xs[i]), toY(ys[i]));
+    }
+    ctx.strokeStyle = "#8b2e12";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Draw observations as ticks
+    if (obs.length > 0) {
+      ctx.fillStyle = "#4a4540";
+      obs.forEach(o => {
+        const ox = toX(o);
+        ctx.beginPath();
+        ctx.moveTo(ox, toY(0));
+        ctx.lineTo(ox, toY(0) + 8);
+        ctx.strokeStyle = "#4a4540";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        // small circle
+        ctx.beginPath();
+        ctx.arc(ox, toY(0) + 10, 2.5, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+    }
+
+    // X-axis labels
+    ctx.fillStyle = "#8a837a";
+    ctx.font = "9px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    const nTicks = 5;
+    for (let i = 0; i <= nTicks; i++) {
+      const x = plotMin + (plotMax - plotMin) * i / nTicks;
+      ctx.fillText(x.toFixed(1), toX(x), H - 4);
+    }
+
+    // Title
+    ctx.fillStyle = "#8a837a";
+    ctx.font = "9px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(`Student-t  ν=${df.toFixed(1)}`, pad.l + 2, pad.t + 8);
+
+  }, [node.lambda, node.nu, node.obs]);
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <canvas ref={canvasRef}
+        style={{ width: W, height: H, border: "1px solid #c8bfb0", borderRadius: 3, display: "block" }} />
+    </div>
+  );
+}
+
 // ── EM Algorithm ─────────────────────────────────────────────────────
 
 function runEM(nodes, edges, maxIter = 50, tol = 1e-6) {
@@ -308,6 +472,8 @@ function NodePanel({ node, onChange, onDelete, allNodes }) {
           )}
         </div>
       </div>
+
+      {node.family === "nig" && <PredictivePlot node={node} />}
     </div>
   );
 }
