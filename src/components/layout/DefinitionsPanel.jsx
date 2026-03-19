@@ -2,6 +2,22 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useKatex } from "../math/useKatex";
 
+// Canonical chapter ordering — single source of truth
+const CHAPTER_ORDER = [1, 4, 5, 6, 7];
+
+function chapterIndex(ch) {
+  const idx = CHAPTER_ORDER.indexOf(ch);
+  return idx === -1 ? Infinity : idx;
+}
+
+// Returns true if (chA, secA) comes strictly after (chB, secB) in the course
+function isAfter(chA, secA, chB, secB) {
+  const iA = chapterIndex(chA);
+  const iB = chapterIndex(chB);
+  if (iA !== iB) return iA > iB;
+  return secA > secB;
+}
+
 function DefinitionCard({ def, ready, currentChapter, currentSectionIndex }) {
   const texRef = useRef(null);
   const navigate = useNavigate();
@@ -37,8 +53,7 @@ function DefinitionCard({ def, ready, currentChapter, currentSectionIndex }) {
     origin.chapter === currentChapter &&
     (origin.section - 1) === currentSectionIndex;
   const isForwardRef = !isDefinedHere && origin &&
-    origin.chapter === currentChapter &&
-    (origin.section - 1) > currentSectionIndex;
+    isAfter(origin.chapter, origin.section - 1, currentChapter, currentSectionIndex);
 
   const handleGotoDefinition = () => {
     if (!origin) return;
