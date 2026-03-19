@@ -931,6 +931,7 @@ canvas.posterior-canvas {
 .sim-graph-area {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .sim-side {

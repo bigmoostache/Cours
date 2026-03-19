@@ -327,6 +327,13 @@ function GraphCanvas({ nodes, edges, selected, selType }) {
     // Run simulation synchronously
     for (let i = 0; i < 120; i++) sim.tick();
 
+    // Clamp node positions inside viewBox (with padding)
+    const pad = 30;
+    simNodes.forEach(n => {
+      n.x = Math.max(pad, Math.min(width - pad, n.x));
+      n.y = Math.max(pad, Math.min(height - pad, n.y));
+    });
+
     // Draw links
     g.selectAll(".graph-link")
       .data(simEdges)
@@ -373,7 +380,7 @@ function GraphCanvas({ nodes, edges, selected, selType }) {
 
   return (
     <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`}
-      style={{ width: "100%", height: height, background: "white", border: "1px solid #c8bfb0", borderRadius: 4 }} />
+      style={{ width: "100%", maxHeight: height, background: "white", border: "1px solid #c8bfb0", borderRadius: 4, overflow: "hidden", display: "block" }} />
   );
 }
 
