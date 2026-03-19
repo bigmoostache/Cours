@@ -189,6 +189,7 @@ definitions:
       - ["$\\eta$", "$(\\mu/\\sigma^2,\\; -1/(2\\sigma^2))$"]
       - ["$A(\\eta)$", "$-\\eta_1^2/(4\\eta_2) + \\tfrac{1}{2}\\log(-\\pi/\\eta_2)$"]
       - ["$h(x)$", "$1/\\sqrt{2\\pi}$"]
+      - ["$\\Omega$", "$\\{\\eta : \\eta_2 < 0\\}$ (demi-plan ouvert)"]
       - ["$\\eta \\to (\\mu,\\sigma^2)$", "$\\mu = -\\eta_1/(2\\eta_2),\\quad \\sigma^2 = -1/(2\\eta_2)$"]
 
   - id: cs-poisson
@@ -199,6 +200,7 @@ definitions:
       - ["$\\eta$", "$\\log \\lambda$"]
       - ["$A(\\eta)$", "$e^\\eta$"]
       - ["$h(x)$", "$1/x!$"]
+      - ["$\\Omega$", "$\\mathbb{R}$ (toujours intégrable)"]
       - ["$\\eta \\to \\lambda$", "$\\lambda = e^\\eta$"]
 
   - id: cs-bernoulli
@@ -209,6 +211,7 @@ definitions:
       - ["$\\eta$", "$\\log(p/(1-p))$ (logit)"]
       - ["$A(\\eta)$", "$\\log(1+e^\\eta)$"]
       - ["$h(x)$", "$1$"]
+      - ["$\\Omega$", "$\\mathbb{R}$ (toujours intégrable)"]
       - ["$\\eta \\to p$", "$p = \\sigma(\\eta) = 1/(1+e^{-\\eta})$"]
       - ["Conjugué", "$\\mathrm{Beta}(\\alpha, \\beta)$"]
 
@@ -220,6 +223,7 @@ definitions:
       - ["$\\eta$", "$(\\alpha-1,\\; \\beta-1)$"]
       - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1+1) + \\log\\Gamma(\\eta_2+1) - \\log\\Gamma(\\eta_1+\\eta_2+2)$"]
       - ["$h(x)$", "$1/(x(1-x))$"]
+      - ["$\\Omega$", "$\\{\\eta : \\eta_1 > -1,\\; \\eta_2 > -1\\}$ soit $\\alpha, \\beta > 0$"]
       - ["Moyenne", "$\\mathbb{E}[X] = \\alpha/(\\alpha+\\beta)$"]
       - ["Conjugué de", "Bernoulli $\\mathrm{Ber}(p)$"]
 
@@ -231,6 +235,7 @@ definitions:
       - ["$\\eta$", "$(\\log(\\pi_k/\\pi_K))_{k<K}$"]
       - ["$A(\\eta)$", "$\\log(1 + \\sum_k e^{\\eta_k})$"]
       - ["$h(x)$", "$1$"]
+      - ["$\\Omega$", "$\\mathbb{R}^{K-1}$ (toujours intégrable)"]
       - ["$\\eta \\to \\pi$", "Softmax : $\\pi_k = e^{\\eta_k}/(1+\\sum_j e^{\\eta_j})$"]
       - ["Conjugué", "$\\mathrm{Dir}(\\alpha_1, \\dots, \\alpha_K)$"]
 
@@ -242,6 +247,7 @@ definitions:
       - ["$\\eta$", "$(\\alpha_1-1, \\dots, \\alpha_K-1)$"]
       - ["$A(\\eta)$", "$\\sum_k \\log\\Gamma(\\eta_k+1) - \\log\\Gamma(\\sum_k(\\eta_k+1))$"]
       - ["$h(\\pi)$", "$1/\\prod_k \\pi_k$"]
+      - ["$\\Omega$", "$\\{\\eta : \\eta_k > -1 \\;\\forall k\\}$ soit $\\alpha_k > 0$"]
       - ["Moyenne", "$\\mathbb{E}[\\pi_k] = \\alpha_k/\\sum_j \\alpha_j$"]
       - ["Conjugué de", "Catégorielle $\\mathrm{Cat}(\\boldsymbol{\\pi})$"]
 
@@ -264,6 +270,7 @@ definitions:
       - ["$\\eta$", "$(\\alpha - 1,\\; -\\beta)$"]
       - ["$A(\\eta)$", "$\\log\\Gamma(\\eta_1+1) - (\\eta_1+1)\\log(-\\eta_2)$"]
       - ["$h(x)$", "$1/x$"]
+      - ["$\\Omega$", "$\\{\\eta : \\eta_1 > -1,\\; \\eta_2 < 0\\}$ soit $\\alpha > 0,\\; \\beta > 0$"]
       - ["$\\eta \\to (\\alpha,\\beta)$", "$\\alpha = \\eta_1 + 1,\\quad \\beta = -\\eta_2$"]
       - ["Moyenne", "$\\mathbb{E}[X] = \\alpha/\\beta$"]
       - ["Cas part.", "Exp($\\lambda$) = Gamma($1, \\lambda$), $\\chi^2_k$ = Gamma($k/2, 1/2$)"]
