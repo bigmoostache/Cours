@@ -22,24 +22,29 @@ sections:
       - type: h3
         text: "Identification dans le cadre exponentiel"
       - type: p
-        text: "La relation $Y \\mid X = x \\sim \\mathcal{N}(x, \\varepsilon^2)$ est une densité gaussienne à variance connue. En la réécrivant dans la forme canonique :"
+        text: "Rappelons la forme canonique d'une famille exponentielle (Ch. 1, §1) :"
       - type: math
-        tex: "p(y \\mid x) = \\frac{1}{\\sqrt{2\\pi\\varepsilon^2}}\\,\\exp\\!\\Bigl(\\frac{x}{\\varepsilon^2}\\,y - \\frac{1}{2\\varepsilon^2}\\,y^2 - \\frac{x^2}{2\\varepsilon^2} - \\frac{1}{2}\\log\\varepsilon^2\\Bigr)"
+        tex: "p(z \\mid \\eta) = h(z)\\,\\exp\\!\\bigl(\\eta^\\top T(z) - A(\\eta)\\bigr)"
       - type: p
-        text: "On reconnaît la forme jointe du Chapitre 5, §2. Les statistiques suffisantes gaussiennes sont bidimensionnelles : $T_X(x) = (x,\\, x^2)$ et $T_Y(y) = (y,\\, y^2)$. Le terme d'interaction $T_X(x)^\\top \\eta_{XY}\\, T_Y(y)$ est donc gouverné par une matrice $\\eta_{XY} \\in \\mathbb{R}^{2 \\times 2}$."
+        text: "Pour la Gaussienne $\\mathcal{N}(\\mu, \\sigma^2)$ (Ch. 1, §7), les identifications sont $T(z) = (z,\\, z^2)$, $\\eta = (\\mu/\\sigma^2,\\, -1/(2\\sigma^2))$, $h(z) = 1/\\sqrt{2\\pi}$."
       - type: p
-        text: "Le seul terme croisé dans l'exposant est $\\frac{x}{\\varepsilon^2}\\,y = \\frac{1}{\\varepsilon^2}\\, T_X^{(1)}(x)\\, T_Y^{(1)}(y)$. Il n'y a aucun terme en $x^2 y$, $x y^2$ ou $x^2 y^2$. La matrice d'interaction a donc trois zéros :"
+        text: "Maintenant, développons $p(y \\mid x) = \\mathcal{N}(x, \\varepsilon^2)$ et identifions chaque terme. La moyenne est $\\mu = x$ (le couplage) et la variance est $\\sigma^2 = \\varepsilon^2$ (connue). L'exposant s'écrit :"
+      - type: math
+        tex: "\\log p(y \\mid x) = \\underbrace{\\frac{x}{\\varepsilon^2}}_{\\eta_Y^{(1)*}(x)} \\cdot \\underbrace{y}_{T_Y^{(1)}} \\;+\\; \\underbrace{\\Bigl(-\\frac{1}{2\\varepsilon^2}\\Bigr)}_{\\eta_Y^{(2)*}} \\cdot \\underbrace{y^2}_{T_Y^{(2)}} \\;-\\; \\underbrace{\\frac{x^2}{2\\varepsilon^2} + \\frac{1}{2}\\log(2\\pi\\varepsilon^2)}_{A(\\eta_Y^*) + \\text{cst}}"
+      - type: p
+        text: "C'est bien la forme canonique $\\eta_Y^{*\\top} T_Y(y) - A(\\eta_Y^*)$ avec $T_Y(y) = (y,\\, y^2)$ — la statistique suffisante gaussienne bidimensionnelle. Le paramètre naturel de $Y$, *incliné* par $x$, est :"
+      - type: math
+        tex: "\\eta_Y^*(x) = \\begin{pmatrix} x/\\varepsilon^2 \\\\ -1/(2\\varepsilon^2) \\end{pmatrix} = \\underbrace{\\begin{pmatrix} 0 \\\\ -1/(2\\varepsilon^2) \\end{pmatrix}}_{\\eta_Y \\text{ (prior marginal)}} + \\underbrace{\\begin{pmatrix} 1/\\varepsilon^2 & 0 \\\\ 0 & 0 \\end{pmatrix}}_{\\eta_{XY}} \\underbrace{\\begin{pmatrix} x \\\\ x^2 \\end{pmatrix}}_{T_X(x)}"
+      - type: p
+        text: "On lit directement la structure du Chapitre 5, §2–3. Le terme d'interaction $T_X(x)^\\top \\eta_{XY}\\, T_Y(y)$ fait apparaître la matrice :"
       - type: box
         title: "Matrice d'interaction instrument"
         tex: "\\eta_{XY} = \\begin{pmatrix} 1/\\varepsilon^2 & 0 \\\\ 0 & 0 \\end{pmatrix}"
       - type: p
-        text: "Seul le bloc $(1,1)$ est non nul : le couplage passe exclusivement par les premières composantes $T^{(1)}_X(x) = x$ et $T^{(1)}_Y(y) = y$ — les positions. Les secondes composantes $(x^2, y^2)$ ne sont pas couplées : l'instrument lie les *moyennes* de $X$ et $Y$, pas leurs *variances*."
-      - type: p
-        text: "Le paramètre incliné (Ch. 5, §3) se calcule alors :"
-      - type: math
-        tex: "\\eta_Y^*(x) = \\eta_Y + \\eta_{XY}^\\top\\, T_X(x) = \\begin{pmatrix} \\eta_Y^{(1)} \\\\ \\eta_Y^{(2)} \\end{pmatrix} + \\begin{pmatrix} 1/\\varepsilon^2 & 0 \\\\ 0 & 0 \\end{pmatrix} \\begin{pmatrix} x \\\\ x^2 \\end{pmatrix} = \\begin{pmatrix} \\eta_Y^{(1)} + x/\\varepsilon^2 \\\\ \\eta_Y^{(2)} \\end{pmatrix}"
-      - type: p
-        text: "La première composante du paramètre naturel de $Y$ (la position) est inclinée par $x/\\varepsilon^2$. La seconde composante (la précision) reste intacte — $\\varepsilon^2$ est connu, le couplage ne l'affecte pas. La conditionnelle $p(y \\mid x)$ reste dans la famille gaussienne : le théorème fondamental (Ch. 5, §3) s'applique."
+        text: "Trois zéros sur quatre. Le couplage passe *exclusivement* par les premières composantes $T_X^{(1)}(x) = x$ et $T_Y^{(1)}(y) = y$ — les positions. Les secondes composantes $(x^2, y^2)$ ne sont pas couplées : l'instrument lie les *moyennes* de $X$ et $Y$, pas leurs *variances*. La composante $\\eta_Y^{(2)} = -1/(2\\varepsilon^2)$ est fixe — elle encode la variance connue de l'instrument, pas un paramètre à inférer."
+      - type: callout
+        title: "Le terme croisé, concrètement."
+        text: "Le seul produit $x \\cdot y$ dans l'exposant est $\\frac{1}{\\varepsilon^2}\\, T_X^{(1)} \\cdot T_Y^{(1)}$. Il n'y a aucun terme en $x^2 y$, $x y^2$ ou $x^2 y^2$ — d'où les trois zéros dans $\\eta_{XY}$. Physiquement : l'instrument mesure la *valeur* de $X$, pas sa *dispersion*."
 
       - type: h3
         text: "Construction du nœud $Y$ dans le graphe"
