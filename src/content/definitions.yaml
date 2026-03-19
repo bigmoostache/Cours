@@ -29,6 +29,12 @@ definitions:
     description: "Facteur de la densité indépendant de $\\eta$. Détermine le support et la forme de base de la distribution."
     defined_in: { chapter: 1, section: 1 }
 
+  - id: moments-theorem
+    term: "Moments par dérivation de $A$"
+    tex: "\\nabla_\\eta A(\\eta) = \\mathbb{E}_\\eta[T(x)], \\quad \\nabla^2_\\eta A(\\eta) = \\operatorname{Var}_\\eta[T(x)]"
+    description: "Les dérivées de la log-partition donnent les moments de $T(x)$. Gradient = espérance, hessienne = variance. Implique la convexité de $A$."
+    defined_in: { chapter: 1, section: 2 }
+
   - id: conjugate-prior
     term: "Prior conjugué"
     tex: "p(\\eta \\mid \\lambda_0, \\nu_0) \\propto \\exp\\!\\bigl(\\eta^\\top \\lambda_0 - \\nu_0\\,A(\\eta)\\bigr)"

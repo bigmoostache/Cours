@@ -29,7 +29,7 @@ sections:
 
   - number: "§ 2"
     title: "Les propriétés universelles de $A(\\eta)$"
-    uses: [log-partition, nat-param, exp-family]
+    uses: [log-partition, nat-param, exp-family, moments-theorem]
     content:
       - type: p
         text: "La log-partition $A(\\eta)$ n'est pas un simple terme technique — elle encode toute la géométrie de la famille. Ses dérivées donnent directement les moments de $T(x)$ :"
@@ -44,7 +44,7 @@ sections:
 
   - number: "§ 3"
     title: "Bernoulli et Catégorielle"
-    uses: [exp-family, suff-stat, nat-param, log-partition, cs-bernoulli]
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-bernoulli, moments-theorem]
     content:
       - type: h3
         text: "Bernoulli $\\mathrm{Ber}(p)$"
@@ -74,7 +74,7 @@ sections:
 
   - number: "§ 4"
     title: "Poisson"
-    uses: [exp-family, suff-stat, nat-param, log-partition, cs-poisson]
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-poisson, moments-theorem]
     content:
       - type: p
         text: "La loi de Poisson modélise le nombre d'événements dans un intervalle fixe. $X \\in \\mathbb{N}$ avec $P(X=k) = \\frac{\\lambda^k}{k!}\\,e^{-\\lambda}$ :"
@@ -130,7 +130,7 @@ sections:
 
   - number: "§ 6"
     title: "Gaussienne"
-    uses: [exp-family, suff-stat, nat-param, log-partition, cs-gaussian]
+    uses: [exp-family, suff-stat, nat-param, log-partition, cs-gaussian, moments-theorem]
     content:
       - type: p
         text: "La Gaussienne est la famille exponentielle la plus utilisée en pratique. Sa forme canonique révèle une statistique suffisante *bidimensionnelle* :"
